@@ -549,6 +549,7 @@ class BaseNeRF(nn.Module):
             h, w = cfg['img_size']
 
         poses = [pose_spherical(theta, phi, -1.307) for phi, theta in fibonacci_sphere(6)]
+        poses = np.stack(poses)
         pose_matrices = []
         K_matrices = []
 
