@@ -572,7 +572,7 @@ class BaseNeRF(nn.Module):
                  [0, 0, 1]])
             K_matrices.append(K)
 
-        pose_matrices = torch.stack(self.pose_matrices).to(device)
+        pose_matrices = torch.stack(pose_matrices).to(device)
         K_matrices = torch.stack(K_matrices).to(device)
 
         image, depth = self.render(
