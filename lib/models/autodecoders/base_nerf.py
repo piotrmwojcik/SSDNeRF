@@ -575,6 +575,13 @@ class BaseNeRF(nn.Module):
         pose_matrices = torch.stack(pose_matrices).to(device)
         K_matrices = torch.stack(K_matrices).to(device)
 
+        print('!!!!')
+        print(test_intrinsics.shape)
+        print(test_poses.shape)
+        print('!!!!!!!')
+        print(K_matrices.shape)
+        print(pose_matrices.shape)
+
         image, depth = self.render(
             decoder, code, density_bitfield, h, w, test_intrinsics, test_poses, cfg=cfg)
         image_multi, depth_multi = self.render(
