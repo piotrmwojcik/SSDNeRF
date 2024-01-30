@@ -89,6 +89,7 @@ test_cfg = dict(
     num_timesteps=50,  # DDIM steps
     clip_range=[-2, 2],
     density_thresh=0.1,
+    viz_dir=work_dir + '/viz_uncond',
     # max_render_rays=16 * 128 * 128,  # uncomment this line to use less rendering memory
     # uncomment the following lines to save NeRFs and meshes
     # save_dir=work_dir + '/save',
