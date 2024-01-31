@@ -577,6 +577,7 @@ class BaseNeRF(nn.Module):
 
         print('!!!!')
         print(test_intrinsics.shape)
+        print(test_intrinsics)
         print(test_poses.shape)
         print('!!!!!!!')
         print(K_matrices.shape)
