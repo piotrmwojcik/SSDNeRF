@@ -535,6 +535,8 @@ class BaseNeRF(nn.Module):
 
     def eval_and_viz(self, data, decoder, code, density_bitfield, viz_dir=None, cfg=dict()):
         scene_name = data['scene_name']  # (num_scenes,)
+        print('Aaa--aaA')
+        print(scene_name.shape)
         test_intrinsics = data['test_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]
         test_poses = data['test_poses']
         num_scenes, num_imgs, _, _ = test_poses.size()
@@ -551,7 +553,7 @@ class BaseNeRF(nn.Module):
         poses = [pose_spherical(theta, phi, -1.307) for phi, theta in fibonacci_sphere(6)]
         poses = np.stack(poses)
         pose_matrices = []
-        K_matrices = []
+        intrinsics = []
 
         device = 'cuda'
 
@@ -562,31 +564,25 @@ class BaseNeRF(nn.Module):
                                   [0, 1, 0, 0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1]]).to(M.device)
-            M = torch.inverse(M)
-            M = M[0:3]
-            pose_matrices.append(M)
 
-            K = torch.Tensor(
-                [[1.0254, 0, 0.5],
-                 [0, 1.0254, 0.5],
-                 [0, 0, 1]])
-            K_matrices.append(K)
+            fxy = torch.Tensor([1.0254, 1.0254, 0.5, 0.5])
+            intrinsics.append(fxy)
 
-        pose_matrices = torch.stack(pose_matrices).to(device)
-        K_matrices = torch.stack(K_matrices).to(device)
+        pose_matrices = torch.stack(M).to(device)
+        intrinsics = torch.stack(intrinsics).to(device)
 
         print('!!!!')
         print(test_intrinsics.shape)
         print(test_intrinsics)
         print(test_poses.shape)
         print('!!!!!!!')
-        print(K_matrices.shape)
+        print(intrinsics.shape)
         print(pose_matrices.shape)
 
         image, depth = self.render(
             decoder, code, density_bitfield, h, w, test_intrinsics, test_poses, cfg=cfg)
         image_multi, depth_multi = self.render(
-            decoder, code, density_bitfield, h, w, K_matrices, pose_matrices, cfg=cfg)
+            decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
 
         pred_imgs = image.permute(0, 1, 4, 2, 3).reshape(
             num_scenes * num_imgs, 3, h, w).clamp(min=0, max=1)
