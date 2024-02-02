@@ -536,7 +536,7 @@ class BaseNeRF(nn.Module):
     def eval_and_viz(self, data, decoder, code, density_bitfield, viz_dir=None, cfg=dict()):
         scene_name = data['scene_name']  # (num_scenes,)
         print('Aaa--aaA')
-        print(scene_name.shape)
+        print(len(scene_name))
         test_intrinsics = data['test_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]
         test_poses = data['test_poses']
         num_scenes, num_imgs, _, _ = test_poses.size()
