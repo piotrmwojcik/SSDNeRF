@@ -566,7 +566,7 @@ class BaseNeRF(nn.Module):
                                   [0, 0, 0, 1]]).to(M.device)
             pose_matrices.append(M)
 
-        pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, poses.shape[0], 1, 1).to(device)
+        pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
         print('!!!!')
         print(test_intrinsics.shape)
