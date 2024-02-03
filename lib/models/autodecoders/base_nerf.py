@@ -535,8 +535,6 @@ class BaseNeRF(nn.Module):
 
     def eval_and_viz(self, data, decoder, code, density_bitfield, viz_dir=None, cfg=dict()):
         scene_name = data['scene_name']  # (num_scenes,)
-        print('Aaa--aaA')
-        print(len(scene_name))
         test_intrinsics = data['test_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]
         test_poses = data['test_poses']
         num_scenes, num_imgs, _, _ = test_poses.size()
@@ -553,9 +551,11 @@ class BaseNeRF(nn.Module):
         poses = [pose_spherical(theta, phi, -1.307) for phi, theta in fibonacci_sphere(6)]
         poses = np.stack(poses)
         pose_matrices = []
-        intrinsics = []
 
         device = 'cuda'
+
+        fxy = torch.Tensor([1.0254, 1.0254, 0.5, 0.5])
+        intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
 
         for i in range(poses.shape[0]):
             M = poses[i]
@@ -564,12 +564,9 @@ class BaseNeRF(nn.Module):
                                   [0, 1, 0, 0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1]]).to(M.device)
+            pose_matrices.append(M)
 
-            fxy = torch.Tensor([1.0254, 1.0254, 0.5, 0.5])
-            intrinsics.append(fxy)
-
-        pose_matrices = torch.stack(M).to(device)
-        intrinsics = torch.stack(intrinsics).to(device)
+        pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, poses.shape[0], 1, 1).to(device)
 
         print('!!!!')
         print(test_intrinsics.shape)
