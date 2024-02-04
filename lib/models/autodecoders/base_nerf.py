@@ -560,7 +560,7 @@ class BaseNeRF(nn.Module):
         for i in range(poses.shape[0]):
             M = poses[i]
             M = torch.from_numpy(M)
-            M = M @ torch.Tensor([[-1, 0, 0, 0],
+            M = M @ torch.Tensor([[1, 0, 0, 0],
                                   [0, 1, 0, 0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1]]).to(M.device)
