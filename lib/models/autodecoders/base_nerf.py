@@ -581,6 +581,8 @@ class BaseNeRF(nn.Module):
         pred_imgs = clamp_image(image, num_imgs)
         pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
 
+        print(pred_imgs_multi)
+
         if test_imgs is not None:
             test_psnr = eval_psnr(pred_imgs, target_imgs)
             test_ssim = eval_ssim_skimage(pred_imgs, target_imgs, data_range=1)
