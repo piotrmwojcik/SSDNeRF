@@ -535,7 +535,6 @@ class BaseNeRF(nn.Module):
 
     def eval_and_viz(self, data, decoder, code, density_bitfield, viz_dir=None, cfg=dict()):
         scene_name = data['scene_name']  # (num_scenes,)
-        print(scene_name)
         test_intrinsics = data['test_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]
         test_poses = data['test_poses']
         num_scenes, num_imgs, _, _ = test_poses.size()
@@ -571,20 +570,16 @@ class BaseNeRF(nn.Module):
 
         image, depth = self.render(
             decoder, code, density_bitfield, h, w, test_intrinsics, test_poses, cfg=cfg)
-        #image_multi, depth_multi = self.render(
-        #    decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
+        image_multi, depth_multi = self.render(
+            decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
 
         def clamp_image(img, num_images):
-            print('!!!')
-            print(num_scenes)
-            print(num_images)
-
             images = img.permute(0, 1, 4, 2, 3).reshape(
                 num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
             return torch.round(images * 255) / 255
 
         pred_imgs = clamp_image(image, num_imgs)
-        #pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
+        pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
 
         if test_imgs is not None:
             test_psnr = eval_psnr(pred_imgs, target_imgs)
@@ -613,6 +608,10 @@ class BaseNeRF(nn.Module):
             os.makedirs(viz_dir, exist_ok=True)
             output_viz = torch.round(pred_imgs.permute(0, 2, 3, 1) * 255).to(
                 torch.uint8).cpu().numpy().reshape(num_scenes, num_imgs, h, w, 3)
+
+            output_viz_multi = torch.round(pred_imgs_multi.permute(0, 2, 3, 1) * 255).to(
+                torch.uint8).cpu().numpy().reshape(num_scenes, poses.shape[0], h, w, 3)
+
             if test_imgs is not None:
                 real_imgs_viz = (target_imgs.permute(0, 2, 3, 1) * 255).to(
                     torch.uint8).cpu().numpy().reshape(num_scenes, num_imgs, h, w, 3)
@@ -634,6 +633,11 @@ class BaseNeRF(nn.Module):
                     plt.imsave(
                         os.path.join(viz_dir, name),
                         output_viz[scene_id][img_id])
+                for img_id in range(poses.shape[0]):
+                    name = 'mp_scene_' + scene_name_single + '_{:03d}.png'.format(img_id)
+                    plt.imsave(
+                        os.path.join(viz_dir, name),
+                        output_viz_multi[scene_id][img_id])
             if isinstance(decoder, DistributedDataParallel):
                 decoder = decoder.module
             code_range = cfg.get('clip_range', [-1, 1])
