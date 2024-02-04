@@ -573,8 +573,8 @@ class BaseNeRF(nn.Module):
         image_multi, depth_multi = self.render(
             decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
 
-        print(test_intrinsics)
-        print(intrinsics)
+        print(test_poses)
+        print(pose_matrices)
 
         def clamp_image(img, num_images):
             images = img.permute(0, 1, 4, 2, 3).reshape(
