@@ -568,21 +568,17 @@ class BaseNeRF(nn.Module):
 
         pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
-        print('!!!!')
-        print(test_intrinsics.shape)
-        print(test_poses.shape)
-        print('!!!!!!!')
-        print(intrinsics.shape)
-        print(pose_matrices.shape)
-
         image, depth = self.render(
             decoder, code, density_bitfield, h, w, test_intrinsics, test_poses, cfg=cfg)
         image_multi, depth_multi = self.render(
             decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
 
-        pred_imgs = image.permute(0, 1, 4, 2, 3).reshape(
-            num_scenes * num_imgs, 3, h, w).clamp(min=0, max=1)
-        pred_imgs = torch.round(pred_imgs * 255) / 255
+        def clamp_image(img):
+            return img.permute(0, 1, 4, 2, 3).reshape(
+                num_scenes * num_imgs, 3, h, w).clamp(min=0, max=1)
+
+        pred_imgs = clamp_image(image)
+        pred_imgs_multi = clamp_image(image_multi)
 
         if test_imgs is not None:
             test_psnr = eval_psnr(pred_imgs, target_imgs)
