@@ -578,7 +578,7 @@ class BaseNeRF(nn.Module):
                 num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
             return torch.round(images * 255) / 255
 
-        #pred_imgs = clamp_image(image, num_imgs)
+        pred_imgs = clamp_image(image, num_imgs)
         #pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
 
         if test_imgs is not None:
