@@ -570,16 +570,16 @@ class BaseNeRF(nn.Module):
 
         image, depth = self.render(
             decoder, code, density_bitfield, h, w, test_intrinsics, test_poses, cfg=cfg)
-        image_multi, depth_multi = self.render(
-            decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
+        #image_multi, depth_multi = self.render(
+        #    decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
 
         def clamp_image(img, num_images):
             images = img.permute(0, 1, 4, 2, 3).reshape(
                 num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
             return torch.round(images * 255) / 255
 
-        pred_imgs = clamp_image(image, num_imgs)
-        pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
+        #pred_imgs = clamp_image(image, num_imgs)
+        #pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
 
         if test_imgs is not None:
             test_psnr = eval_psnr(pred_imgs, target_imgs)
