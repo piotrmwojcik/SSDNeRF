@@ -609,14 +609,12 @@ class BaseNeRF(nn.Module):
             output_viz = torch.round(pred_imgs.permute(0, 2, 3, 1) * 255).to(
                 torch.uint8).cpu().numpy().reshape(num_scenes, num_imgs, h, w, 3)
             if test_imgs is not None:
-                print('AAA test AAA')
                 real_imgs_viz = (target_imgs.permute(0, 2, 3, 1) * 255).to(
                     torch.uint8).cpu().numpy().reshape(num_scenes, num_imgs, h, w, 3)
                 output_viz = np.concatenate([real_imgs_viz, output_viz], axis=-2)
             for scene_id, scene_name_single in enumerate(scene_name):
                 for img_id in range(num_imgs):
                     if test_img_paths is not None:
-                        print('--1--')
                         base_name = 'scene_' + scene_name_single + '_' + os.path.splitext(
                             os.path.basename(test_img_paths[scene_id][img_id]))[0]
                         name = base_name + '_psnr{:02.1f}_ssim{:.2f}_lpips{:.3f}.png'.format(
@@ -627,7 +625,6 @@ class BaseNeRF(nn.Module):
                         for file in existing_files:
                             os.remove(file)
                     else:
-                        print('--2--')
                         name = 'scene_' + scene_name_single + '_{:03d}.png'.format(img_id)
                     plt.imsave(
                         os.path.join(viz_dir, name),
