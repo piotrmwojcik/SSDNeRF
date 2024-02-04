@@ -574,8 +574,9 @@ class BaseNeRF(nn.Module):
             decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
 
         def clamp_image(img):
-            return img.permute(0, 1, 4, 2, 3).reshape(
+            images = img.permute(0, 1, 4, 2, 3).reshape(
                 num_scenes * num_imgs, 3, h, w).clamp(min=0, max=1)
+            return torch.round(images * 255) / 255
 
         pred_imgs = clamp_image(image)
         pred_imgs_multi = clamp_image(image_multi)
