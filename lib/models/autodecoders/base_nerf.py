@@ -554,7 +554,7 @@ class BaseNeRF(nn.Module):
 
         device = 'cuda'
 
-        fxy = torch.Tensor([102.54, 102.54, 50.0, 50.0])
+        fxy = torch.Tensor([1.0254, 1.0254, 0.5, 0.5])
         intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
 
         for i in range(poses.shape[0]):
@@ -564,6 +564,7 @@ class BaseNeRF(nn.Module):
                                   [0, 1, 0, 0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1]]).to(M.device)
+            M = torch.inverse(M)
             pose_matrices.append(M)
 
         pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
