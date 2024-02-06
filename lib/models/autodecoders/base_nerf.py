@@ -548,13 +548,13 @@ class BaseNeRF(nn.Module):
             test_imgs = test_img_paths = target_imgs = None
             h, w = cfg['img_size']
 
-        poses = [pose_spherical(theta, phi, -1.307) for phi, theta in fibonacci_sphere(6)]
+        poses = [pose_spherical(theta, phi, -1.3) for phi, theta in fibonacci_sphere(6)]
         poses = np.stack(poses)
         pose_matrices = []
 
         device = 'cuda'
 
-        fxy = torch.Tensor([65.625, 65.625, 64.00, 64.00])
+        fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
         intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
         print(intrinsics)
 
