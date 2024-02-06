@@ -554,7 +554,7 @@ class BaseNeRF(nn.Module):
 
         device = 'cuda'
 
-        fxy = torch.Tensor([1.0254, 1.0254, 0.5, 0.5])
+        fxy = torch.Tensor([131.25, 131.25, 64.00, 64.00])
         intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
 
         for i in range(poses.shape[0]):
