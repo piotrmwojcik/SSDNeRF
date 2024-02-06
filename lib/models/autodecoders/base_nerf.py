@@ -556,6 +556,7 @@ class BaseNeRF(nn.Module):
 
         fxy = torch.Tensor([65.625, 65.625, 64.00, 64.00])
         intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
+        print(intrinsics)
 
         for i in range(poses.shape[0]):
             M = poses[i]
