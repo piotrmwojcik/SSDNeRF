@@ -84,7 +84,7 @@ def read_txt_to_tensor(file_path):
 
 def create_six_digit_strings():
     six_digit_strings = []
-    for i in range(1, 250):
+    for i in range(1, 50):
         six_digit_string = str(i).zfill(6)
         six_digit_strings.append(six_digit_string)
     return six_digit_strings
@@ -107,11 +107,12 @@ def main():
 
     poses_multiplane = []
     poses_multiplane_flip = []
-    psphere = [pose_spherical(theta, phi, -1.307) for phi, theta in fibonacci_sphere(6)]
+    psphere = [pose_spherical(theta, phi, -1.3) for phi, theta in fibonacci_sphere(6)]
 
     for p in psphere:
         point = [0, 0, 0, 1]
         point = torch.tensor(point).float().view(4, 1)
+
         p_car = torch.matmul(torch.tensor(p), point)
         xyz_car = p_car.tolist()
         xyz_car = tuple(xyz_car[:3])
@@ -127,6 +128,7 @@ def main():
                                 [0, 0, 0, 1]])
 
         p_car = torch.matmul(pm, point)
+
         xyz_car = p_car.tolist()
         xyz_car = tuple(xyz_car[:3])
         poses_multiplane_flip.append(xyz_car)
@@ -144,9 +146,10 @@ def main():
     ax = fig.add_subplot(111, projection='3d')
 
     for pose in poses:
+        #d = pose[0][0]**2 + pose[1][0]**2 + pose[2][0]**2
+        #print(round(math.sqrt(d), 4))
         ax.scatter(*pose, color='b', s=5)
-        d = pose[0][0]**2 + pose[1][0]**2 + pose[2][0]**2
-        print(math.sqrt(d))
+
     for pose in poses_multiplane:
 
         ax.scatter(*pose, color='r', s=5)
