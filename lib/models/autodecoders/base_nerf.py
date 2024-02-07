@@ -562,7 +562,7 @@ class BaseNeRF(nn.Module):
             M = poses[i]
             M = torch.from_numpy(M)
             M = M @ torch.Tensor([[-1, 0, 0, 0],
-                                  [0, 1, 0, 0],
+                                  [0, -1, 0, 0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1]]).to(M.device)
             #M = torch.inverse(M)
