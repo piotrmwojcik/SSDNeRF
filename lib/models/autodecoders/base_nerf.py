@@ -566,14 +566,18 @@ class BaseNeRF(nn.Module):
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1]]).to(M.device)
             #M = torch.inverse(M)
+            point = [0, 0, 0, 1]
+            point = torch.tensor(point).float().view(4, 1).to(M.device)
+
+            p_car = torch.matmul(M, point)
+
+            xyz_car = p_car.tolist()
+            xyz_car = tuple(xyz_car[:3])
+            print(xyz_car)
             pose_matrices.append(M)
 
         pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
-        print(test_poses.shape)
-        print(test_poses.dtype)
-        print(pose_matrices.shape)
-        print(pose_matrices.dtype)
 
         image_multi, depth_multi = self.render(
             decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
