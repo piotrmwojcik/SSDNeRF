@@ -579,6 +579,8 @@ class BaseNeRF(nn.Module):
                                   [0, 0, 0, 1]]).to(M.device)
             #M = torch.inverse(M)
 
+            M = torch.cat([M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
+
             pose_matrices.append(M)
 
         pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
