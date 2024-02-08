@@ -561,10 +561,13 @@ class BaseNeRF(nn.Module):
         for i in range(poses.shape[0]):
             M = poses[i]
             M = torch.from_numpy(M)
-            #M = M @ torch.Tensor([[-1, 0, 0, 0],
-            #                      [0, 1, 0, 0],
-            #                      [0, 0, 1, 0],
-            #                      [0, 0, 0, 1]]).to(M.device)
+            M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                  [0, 1, 0, 0],
+                                  [0, 0, 1, 0],
+                                  [0, 0, 0, 1]]).to(M.device)
+
+            M = torch.cat(
+                [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
             #M = torch.inverse(M)
             pose_matrices.append(M)
 
