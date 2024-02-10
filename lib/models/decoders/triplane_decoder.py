@@ -45,8 +45,8 @@ class ImagePlanes(torch.nn.Module):
             self.images.append(image)#.permute(2, 0, 1))
             self.size = float(image.shape[0])
             K = torch.Tensor(
-                [[131.25, 0, 64.00],
-                 [0, 131.25, 64.00],
+                [[1.0254, 0, 0.5],
+                 [0, 1.0254, 0.5],
                  [0, 0, 1]])
             self.K_matrices.append(K)
 
