@@ -547,9 +547,9 @@ class BaseNeRF(nn.Module):
         else:
             test_imgs = test_img_paths = target_imgs = None
             h, w = cfg['img_size']
-        poses = [pose_spherical(theta, phi, -1.3) for phi, theta in fibonacci_sphere(6)]
-        poses = np.stack(poses)
-        pose_matrices = []
+        #poses = [pose_spherical(theta, phi, -1.3) for phi, theta in fibonacci_sphere(6)]
+        #poses = np.stack(poses)
+        #pose_matrices = []
 
         device = 'cuda'
 
@@ -570,7 +570,7 @@ class BaseNeRF(nn.Module):
         #     # M = torch.inverse(M)
         #     pose_matrices.append(M)
 
-        pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
+       # pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
         image, depth = self.render(
             decoder, code, density_bitfield, h, w, test_intrinsics, test_poses, cfg=cfg)
