@@ -26,6 +26,11 @@ class ImagePlanes(torch.nn.Module):
         self.images = []
 
         self.focal = focal
+
+        point = [0, 0, 0, 1]
+        point = torch.tensor(point).float().view(4, 1)
+        origins = []
+
         for i in range(min(count, poses.shape[0])):
             M = poses[i]
             M = torch.from_numpy(M)
@@ -33,6 +38,11 @@ class ImagePlanes(torch.nn.Module):
                                   [0, 1, 0, 0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1]]).to(M.device)
+
+            origin = torch.matmul(M, point)
+            origin = origin[:3].reshape(1, 3)
+            origins.append(origin)
+
             M = torch.cat([M[:3, :3], (M[:3, 3:] / 0.5)], dim=-1)
             M = torch.cat([M, M.new_tensor([[0.0, 0.0, 0.0, 1.0]])], dim=-2)
 
@@ -50,6 +60,10 @@ class ImagePlanes(torch.nn.Module):
                  [0, 0, 1]])
             self.K_matrices.append(K)
 
+        origins = torch.cat(origins)
+        origins = torch.flatten(origins)
+
+        self.origins = origins.to(device)
         self.pose_matrices = torch.stack(self.pose_matrices).to(device)
         self.K_matrices = torch.stack(self.K_matrices).to(device)
         self.image_plane = torch.stack(self.images).to(device)
@@ -57,7 +71,6 @@ class ImagePlanes(torch.nn.Module):
     def forward(self, points=None):
         if points.shape[0] == 1:
             points = points[0]
-
 
         points_camera = torch.concat([points, torch.ones(points.shape[0], 1).to(points.device)], 1).to(points.device)
         points_in_camera_coords = self.pose_matrices @ points_camera.T
@@ -93,10 +106,9 @@ class ImagePlanes(torch.nn.Module):
 
         feats = feats.permute(2, 3, 0, 1).squeeze(0)
         feats = feats.reshape(num_points, -1)
-        # print(feats[0].shape) # torch.Size([262144, 96])
-        # print(pixels.shape) # torch.Size([262144, 6])
 
-        feats = torch.cat((feats, pixels), 1)
+        origins = self.origins.repeat(num_points,1)
+        feats = torch.cat((feats, pixels, origins), 1)
         return feats
 
 
