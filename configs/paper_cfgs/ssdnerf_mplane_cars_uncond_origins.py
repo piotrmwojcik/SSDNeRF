@@ -148,7 +148,7 @@ evaluation = [
         viz_dir=work_dir + '/viz_uncond',
         save_best_ckpt=False)]
 
-total_iters = 1000000  # K_out (outer loop iterations)
+total_iters = 10005  # K_out (outer loop iterations)
 log_config = dict(
     interval=50,
     hooks=[
