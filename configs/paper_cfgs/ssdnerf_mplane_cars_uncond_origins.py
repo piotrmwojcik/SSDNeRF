@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond_origins'
+name = 'ssdnerf_mplane_cars_uncond_originsV2'
 
 DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
 
@@ -148,7 +148,7 @@ evaluation = [
         viz_dir=work_dir + '/viz_uncond',
         save_best_ckpt=False)]
 
-total_iters = 10005  # K_out (outer loop iterations)
+total_iters = 1000000  # K_out (outer loop iterations)
 log_config = dict(
     interval=50,
     hooks=[
