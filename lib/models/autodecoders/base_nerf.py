@@ -532,7 +532,10 @@ class BaseNeRF(nn.Module):
                 if show_pbar:
                     pbar.update()
             if self.scheduler is not None:
+                print('ok')
                 self.scheduler.step()
+            else:
+                print('consistency weight scheduler is none')
 
         decoder.train(decoder_training_prev)
 
