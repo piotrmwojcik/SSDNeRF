@@ -42,7 +42,7 @@ class ImagePlanes(torch.nn.Module):
 
             image = images[i]
             # image = torch.from_numpy(image)
-            self.images.append(image)#.permute(2, 0, 1))
+            self.images.append(image)  # .permute(2, 0, 1))
             self.size = float(image.shape[0])
             K = torch.Tensor(
                 [[1.0254, 0, 0.5],
@@ -57,7 +57,6 @@ class ImagePlanes(torch.nn.Module):
     def forward(self, points=None):
         if points.shape[0] == 1:
             points = points[0]
-
 
         points_camera = torch.concat([points, torch.ones(points.shape[0], 1).to(points.device)], 1).to(points.device)
         points_in_camera_coords = self.pose_matrices @ points_camera.T
@@ -74,8 +73,8 @@ class ImagePlanes(torch.nn.Module):
         pixels = pixels * 2.0 - 1.0
         pixels = pixels.permute(0, 2, 1)
 
-        #print(pixels.shape)
-        #print(self.image_plane.shape)
+        # print(pixels.shape)
+        # print(self.image_plane.shape)
 
         num_points = pixels.shape[1]
 
@@ -96,13 +95,12 @@ class ImagePlanes(torch.nn.Module):
         # print(feats[0].shape) # torch.Size([262144, 96])
         # print(pixels.shape) # torch.Size([262144, 6])
 
-        feats = torch.cat((feats, pixels), 1)
-        return feats
+        # feats = torch.cat((feats, pixels), 1)
+        return feats, pixels
 
 
 @MODULES.register_module()
 class TriPlaneDecoder(VolumeRenderer):
-
     activation_dict = {
         'relu': nn.ReLU,
         'silu': nn.SiLU,
@@ -189,20 +187,20 @@ class TriPlaneDecoder(VolumeRenderer):
         if self.dir_net is not None:
             constant_init(self.dir_net[-1], 0)
 
-    # def xyz_transform(self, xyz):
-    #     if self.flip_z:
-    #         xyz = torch.cat([xyz[..., :2], -xyz[..., 2:]], dim=-1)
-    #     xy = xyz[..., :2]
-    #     xz = xyz[..., ::2]
-    #     yz = xyz[..., 1:]
-    #     if xyz.dim() == 2:
-    #         out = torch.stack([xy, xz, yz], dim=0).unsqueeze(1)  # (3, 1, num_points, 2)
-    #     elif xyz.dim() == 3:
-    #         num_scenes, num_points, _ = xyz.size()
-    #         out = torch.stack([xy, xz, yz], dim=1).reshape(num_scenes * 3, 1, num_points, 2)
-    #     else:
-    #         raise ValueError
-    #     return out
+    def xyz_transform(self, xyz):
+        if self.flip_z:
+            xyz = torch.cat([xyz[..., :2], -xyz[..., 2:]], dim=-1)
+        xy = xyz[..., :2]
+        xz = xyz[..., ::2]
+        yz = xyz[..., 1:]
+        if xyz.dim() == 2:
+            out = torch.stack([xy, xz, yz], dim=0).unsqueeze(1)  # (3, 1, num_points, 2)
+        elif xyz.dim() == 3:
+            num_scenes, num_points, _ = xyz.size()
+            out = torch.stack([xy, xz, yz], dim=1).reshape(num_scenes * 3, 1, num_points, 2)
+        else:
+            raise ValueError
+        return out
 
     def point_decode(self, xyzs, dirs, code, density_only=False):
         """
@@ -217,10 +215,8 @@ class TriPlaneDecoder(VolumeRenderer):
                 code.reshape(num_scenes * 3, n_channels, h, w)
             ).reshape(num_scenes, 3, n_channels, h, w)
 
-
         if self.scene_base is not None:
             code = code + self.scene_base
-
 
         # if isinstance(xyzs, torch.Tensor):
         #     assert xyzs.dim() == 3
@@ -240,37 +236,42 @@ class TriPlaneDecoder(VolumeRenderer):
         point_code = []
         image_planes = []
 
+        # idea: zrobic normalnie multiplejny jak byly i nadpisac triplejnem podwozie
         for code_single, xyzs_single in zip(code, xyzs):
-
             num_points_per_scene = xyzs_single.size(-2)
-            # (3, code_chn, num_points_per_scene)
-            # point_code_single = F.grid_sample(
-            #     code_single,
-            #     self.xyz_transform(xyzs_single),
-            #     mode=self.interp_mode, padding_mode='border', align_corners=False
-            # ).squeeze(-2)
 
             poses = [pose_spherical(theta, phi, -1.3) for phi, theta in fibonacci_sphere(6)]
-
+            images = code_single.view(6, 3, code.shape[-2], code.shape[-1])
             image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
                                       poses=np.stack(poses),
-                                      images=code_single.view(6, 3, code.shape[-2], code.shape[-1]))
-
+                                      images=images)
             image_planes.append(image_plane)
-            point_code_single = image_plane(xyzs_single)
 
+            # nie jestem pewien czy triplane to bedzie akurat images[2], choc tak wynika z wizualizacji
+            triplane = images[2]
 
-            # print('!!!!--!!!!')
-            # print(point_code_single.permute(2, 1, 0).shape)
-            # # point_code_single = point_code_single.permute(2, 1, 0).reshape(
-            # #     num_points_per_scene, -1)
-            # print('!!!!')
-            # print(point_code_single.shape)
-            # print(xyzs[0].shape)
-            # print(dirs[0].shape)
+            # na triplane samplowanie jak w ssdnerfie
+            point_triplane_single = F.grid_sample(
+                triplane,
+                self.xyz_transform(xyzs_single),
+                mode=self.interp_mode, padding_mode='border', align_corners=False
+            ).squeeze(-2)
+
+            point_triplane_single = point_triplane_single.permute(2, 1, 0).reshape(
+                num_points_per_scene, -1)
+
+            # feats i pixels z multiplejnow (usunieta konkatenacja w funkcji zeby dodac teraz output triplejnow)
+            feats, pixels = image_plane(xyzs_single)
+
+            # nadpisanie featsow i pixeli triplejnami, najpierw zera jako punkty przeciec z triplejnami ale pewnie
+            # trzeba dac cos innego
+
+            feats[:, 6:9] = point_triplane_single
+            pixels[:, 4:6] = torch.zeros_like(pixels[:, 4:6])
+
+            point_code_single = torch.cat((feats, pixels), 1)
             num_points.append(num_points_per_scene)
             point_code.append(point_code_single)
-
 
         point_code = torch.cat(point_code, dim=0) if len(point_code) > 1 \
             else point_code[0]
@@ -293,7 +294,6 @@ class TriPlaneDecoder(VolumeRenderer):
             rgbs = self.color_net(color_in)
             if self.sigmoid_saturation > 0:
                 rgbs = rgbs * (1 + self.sigmoid_saturation * 2) - self.sigmoid_saturation
-
 
         return sigmas, rgbs, num_points
 
