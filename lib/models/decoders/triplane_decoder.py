@@ -14,7 +14,7 @@ from .base_volume_renderer import VolumeRenderer
 from lib.ops import SHEncoder, TruncExp
 import math
 
-from ...core.utils.multiplane_pos import REGULAR_POSES
+from ...core.utils.multiplane_pos import REGULAR_POSES, pose_spherical
 
 
 class ImagePlanes(torch.nn.Module):
@@ -250,8 +250,10 @@ class TriPlaneDecoder(VolumeRenderer):
             #     mode=self.interp_mode, padding_mode='border', align_corners=False
             # ).squeeze(-2)
 
+            poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+
             image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
-                                      poses=np.stack(REGULAR_POSES.copy()),
+                                      poses=np.stack(poses),
                                       images=code_single.view(6, 3, code.shape[-2], code.shape[-1]))
 
             image_planes.append(image_plane)

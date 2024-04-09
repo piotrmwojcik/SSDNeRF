@@ -19,9 +19,10 @@ def cart2sph(x,y,z):
     return elev, az
 
 
-REGULAR_POSES = [(1.3, 0.0, 0.0), (-1.3, 0.0, 0.0), (0.0, 1.3, 0.0),
+_REGULAR_POSES = [(1.3, 0.0, 0.0), (-1.3, 0.0, 0.0), (0.0, 1.3, 0.0),
                  (0.0, -1.3, 0.0), (0.5, 0.5, 1.09087), (-0.5, -0.5, 1.09087)]
 
+REGULAR_POSES = [cart2sph(p) for p in _REGULAR_POSES]
 
 def fibonacci_sphere(samples=1000):
 
