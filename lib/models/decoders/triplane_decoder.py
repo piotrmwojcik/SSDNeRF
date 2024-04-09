@@ -250,10 +250,8 @@ class TriPlaneDecoder(VolumeRenderer):
             #     mode=self.interp_mode, padding_mode='border', align_corners=False
             # ).squeeze(-2)
 
-            poses = REGULAR_POSES
-
             image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
-                                      poses=np.stack(poses),
+                                      poses=np.stack(REGULAR_POSES),
                                       images=code_single.view(6, 3, code.shape[-2], code.shape[-1]))
 
             image_planes.append(image_plane)
