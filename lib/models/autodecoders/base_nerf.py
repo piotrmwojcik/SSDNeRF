@@ -443,7 +443,7 @@ class BaseNeRF(nn.Module):
             if show_pbar:
                 pbar = mmcv.ProgressBar(n_inverse_steps)
 
-            poses = np.stack(REGULAR_POSES)
+            poses = np.stack(REGULAR_POSES.copy())
 
             if self.consistency_weight_scheduler is not None:
                 beta = torch.tensor(self.consistency_weight_scheduler.get_last_lr()).to(device)

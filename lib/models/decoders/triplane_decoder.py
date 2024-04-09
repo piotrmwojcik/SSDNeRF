@@ -251,7 +251,7 @@ class TriPlaneDecoder(VolumeRenderer):
             # ).squeeze(-2)
 
             image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
-                                      poses=np.stack(REGULAR_POSES),
+                                      poses=np.stack(REGULAR_POSES.copy()),
                                       images=code_single.view(6, 3, code.shape[-2], code.shape[-1]))
 
             image_planes.append(image_plane)
