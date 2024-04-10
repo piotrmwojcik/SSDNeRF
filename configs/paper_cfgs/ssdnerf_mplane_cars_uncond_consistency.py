@@ -187,10 +187,11 @@ custom_hooks = [
         viz_dir='cache/' + name + '/viz'),
     dict(
         type='ModelUpdaterHook',
-        step=[0, 2000, 200000, 800000],
+        step=[0, 2000, 100000, 200000, 800000],
         cfgs=[{'diffusion.ddpm_loss.weight_scale': 0.0},
-              {'train_cfg.extra_scene_step': 3,
-               'diffusion.ddpm_loss.weight_scale': 4.0},  # decay schedule of K_in & triplane lr
+              {'train_cfg.extra_scene_step': 3},
+              {'diffusion.ddpm_loss.weight_scale': 4.0},
+              # decay schedule of K_in & triplane lr
               {'train_cfg.extra_scene_step': 1,
                'diffusion.ddpm_loss.freeze_norm': True},
               {'train_cfg.extra_scene_step': 1,
