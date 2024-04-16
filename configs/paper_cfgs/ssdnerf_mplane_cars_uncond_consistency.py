@@ -1,7 +1,7 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond_scale_xyz'
+name = 'ssdnerf_mplane_cars_uncond_consistency_regular_pl2'
 
-DATA_PATH = '/data/pwojcik/SSDNeRF/data/shapenet'
+DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
 
 cache_path = os.getcwd()
 cache_path = os.path.dirname(cache_path)
@@ -48,7 +48,7 @@ model = dict(
     decoder=dict(
         type='TriPlaneDecoder',
         interp_mode='bilinear',
-        base_layers=[6 * 5 + 3, 64],
+        base_layers=[6 * 5, 64],
         density_layers=[64, 1],
         color_layers=[64, 3],
         use_dir_enc=True,
@@ -63,10 +63,11 @@ model = dict(
     pixel_loss=dict(
         type='MSELoss',
         loss_weight=20.0),  # (0.5 * 2^14) * c_rend (rendering weight constant)
-    reg_loss=dict(
-        type='RegLoss',
-        power=2,
-        loss_weight=3e-3),
+    # reg_loss=dict(
+    #     type='RegLoss',
+    #     power=2,
+    #     loss_weight=3e-3),
+    #reg_loss=None,
     cache_size=2458)  # number of training scenes
 
 save_interval = 5000
@@ -79,9 +80,7 @@ train_cfg = dict(
     density_thresh=0.1,
     extra_scene_step=15,  # -1 + K_in (inner loop iterations)
     n_inverse_rays=2 ** 12,  # ray batch size
-
-    n_inverse_rays_mlti =2 ** 12,  # multiplane ray batch size
-
+    n_consistency_rays=2 ** 12,  # ray batch size for consistency rendering
     n_decoder_rays=2 ** 12,  # ray batch size (used in the final inner iteration that updates the decoder)
     loss_coef=0.1 / (128 * 128),  # 0.1: the exponent in the λ_rend equation; 128 x 128: number of rays per view (image size)
     optimizer=dict(type='Adam', lr=5e-3, weight_decay=0.),
@@ -131,6 +130,15 @@ lr_config = dict(  # decay schedule of diffusion & decoder lr
     warmup_ratio=0.001,
     gamma=0.5,
     step=[500000])
+
+lr_config = dict(  # decay schedule of diffusion & decoder lr
+    policy='step',
+    warmup='linear',
+    warmup_iters=500,
+    warmup_ratio=0.001,
+    gamma=0.5,
+    step=[500000])
+
 checkpoint_config = dict(interval=save_interval, by_epoch=False, max_keep_ckpts=2)
 
 evaluation = [
@@ -186,8 +194,7 @@ custom_hooks = [
               {'train_cfg.extra_scene_step': 1,
                'train_cfg.optimizer.lr': 2.5e-3,
                'diffusion.ddpm_loss.freeze_norm': True,
-               'pixel_loss.loss_weight': 10.0,
-               'reg_loss.loss_weight': 1.5e-3}],
+               'pixel_loss.loss_weight': 10.0}],
         by_epoch=False)
 ]
 

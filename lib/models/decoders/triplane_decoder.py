@@ -14,7 +14,7 @@ from .base_volume_renderer import VolumeRenderer
 from lib.ops import SHEncoder, TruncExp
 import math
 
-from ...core.utils.multiplane_pos import pose_spherical, fibonacci_sphere
+from ...core.utils.multiplane_pos import REGULAR_POSES, pose_spherical
 
 
 class ImagePlanes(torch.nn.Module):
@@ -33,6 +33,9 @@ class ImagePlanes(torch.nn.Module):
                                   [0, 1, 0, 0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1]]).to(M.device)
+            M = torch.cat([M[:3, :3], (M[:3, 3:] / 0.5)], dim=-1)
+            M = torch.cat([M, M.new_tensor([[0.0, 0.0, 0.0, 1.0]])], dim=-2)
+
             M = torch.inverse(M)
             M = M[0:3]
             self.pose_matrices.append(M)
@@ -81,7 +84,7 @@ class ImagePlanes(torch.nn.Module):
             feat = torch.nn.functional.grid_sample(
                 self.image_plane[img].unsqueeze(0),
                 pixels[img].unsqueeze(0).unsqueeze(0),
-                mode='bilinear', padding_mode='zeros', align_corners=False)
+                mode='bilinear', padding_mode='border', align_corners=False)
             feats.append(feat)
 
         feats = torch.stack(feats).squeeze(1)
@@ -93,7 +96,7 @@ class ImagePlanes(torch.nn.Module):
         # print(feats[0].shape) # torch.Size([262144, 96])
         # print(pixels.shape) # torch.Size([262144, 6])
 
-        feats = torch.cat((feats, pixels, points), 1)
+        feats = torch.cat((feats, pixels), 1)
         return feats
 
 
@@ -247,7 +250,7 @@ class TriPlaneDecoder(VolumeRenderer):
             #     mode=self.interp_mode, padding_mode='border', align_corners=False
             # ).squeeze(-2)
 
-            poses = [pose_spherical(theta, phi, -1.307) for phi, theta in fibonacci_sphere(6)]
+            poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
 
             image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
                                       poses=np.stack(poses),
