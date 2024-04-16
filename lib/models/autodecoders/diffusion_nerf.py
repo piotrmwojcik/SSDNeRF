@@ -6,8 +6,9 @@ from torch.nn.parallel.distributed import DistributedDataParallel
 from mmgen.models.builder import MODELS, build_module
 from mmgen.models.architectures.common import get_module_device
 
-from ...core import eval_psnr, rgetattr, module_requires_grad, get_cam_rays
 from .multiscene_nerf import MultiSceneNeRF
+from lib.core import eval_psnr, rgetattr, module_requires_grad, get_cam_rays
+from ...core.utils.multiplane_pos import REGULAR_POSES
 
 
 @MODELS.register_module()
@@ -111,12 +112,64 @@ class DiffusionNeRF(MultiSceneNeRF):
 
         x_t_detach = self.train_cfg.get('x_t_detach', False)
 
+        with module_requires_grad(decoder, False):
+            #-------
+            from lib.core.utils.multiplane_pos import pose_spherical
+            import numpy as np
+
+            poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+            poses = np.stack(poses)
+            pose_matrices = []
+
+            device = 'cuda'
+
+            fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
+            intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
+
+            for i in range(poses.shape[0]):
+                M = poses[i]
+                M = torch.from_numpy(M)
+                M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                     [0, 1, 0, 0],
+                                     [0, 0, 1, 0],
+                                     [0, 0, 0, 1]]).to(M.device)
+
+                M = torch.cat(
+                    [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
+                # M = torch.inverse(M)
+                pose_matrices.append(M)
+
+            pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
+            h, w = 128, 128
+            image_multi, depth_multi = self.render(decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=dict()) #(num_scenes, num_imgs, h, w, 3)
+            def clamp_image(img, num_images):
+                images = img.permute(0, 1, 4, 2, 3).reshape(
+                    num_scenes * num_images, 3, h, w)#.clamp(min=0, max=1)
+                return images
+                #return torch.round(images * 255) / 255
+
+            image_multi = clamp_image(image_multi, poses.shape[0])
+
+            diff_input = image_multi.reshape(num_scenes, 6, 3, h, w)
+            diff_input = diff_input.reshape(num_scenes, 3, 6, h, w)
+            #diff_input = diff_input.permute(0, 2, 1, 3, 4)
+
+        import pickle
+
+        from mmcv.runner import get_dist_info
+        rank, ws = get_dist_info()
+
+        # only download from the master process
+        if rank == 0:
+            with open('/data/pwojcik/diff_input3.pkl', 'wb') as handle:
+                pickle.dump(diff_input, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
         with torch.autocast(
                 device_type='cuda',
                 enabled=self.autocast_dtype is not None,
                 dtype=getattr(torch, self.autocast_dtype) if self.autocast_dtype is not None else None):
             loss_diffusion, log_vars = diffusion(
-                self.code_diff_pr(code), concat_cond=concat_cond, return_loss=True,
+                self.code_diff_pr(diff_input), concat_cond=concat_cond, return_loss=True,
                 x_t_detach=x_t_detach, cfg=self.train_cfg)
         loss_diffusion.backward()
         for key in optimizer.keys():
@@ -125,18 +178,22 @@ class DiffusionNeRF(MultiSceneNeRF):
 
         if extra_scene_step > 0:
             assert len(code_optimizers) > 0
-            prior_grad = [code_.grad.data.clone() for code_ in code_list_]
+            prior_grad = None
+            #prior_grad = [code_.grad.data.clone() for code_ in code_list_]
             cfg = self.train_cfg.copy()
             cfg['n_inverse_steps'] = extra_scene_step
-            code, _, _, loss_decoder, loss_dict_decoder, out_rgbs, target_rgbs = self.inverse_code(
+            code, _, _, loss_decoder, loss_nerf, loss_consistency, loss_nerf_dict, loss_consistency_dict, out_rgbs, target_rgbs = self.inverse_code(
                 decoder, cond_imgs, cond_rays_o, cond_rays_d, dt_gamma=dt_gamma, cfg=cfg,
                 code_=code_list_,
                 density_grid=density_grid,
                 density_bitfield=density_bitfield,
                 code_optimizer=code_optimizers,
                 prior_grad=prior_grad)
-            for k, v in loss_dict_decoder.items():
+            for k, v in loss_nerf_dict.items():
                 log_vars.update({k: float(v)})
+            for k, v in loss_consistency_dict.items():
+                log_vars.update({f"{k}_consistency": float(v)})
+
         else:
             prior_grad = None
 
@@ -175,7 +232,9 @@ class DiffusionNeRF(MultiSceneNeRF):
                 train_psnr = eval_psnr(out_rgbs, target_rgbs)
                 code_rms = code.square().flatten(1).mean().sqrt()
                 log_vars.update(train_psnr=float(train_psnr.mean()),
-                                code_rms=float(code_rms.mean()))
+                                code_rms=float(code_rms.mean()),
+                                # nerf_loss = float()
+                                )
                 if 'test_imgs' in data and data['test_imgs'] is not None:
                     log_vars.update(self.eval_and_viz(
                         data, self.decoder, code, density_bitfield, cfg=self.train_cfg)[0])

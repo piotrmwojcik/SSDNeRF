@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_cars_uncond'
+name = 'ssdnerf_mplane_cars_uncond_scale_xyz'
 
 DATA_PATH = '/data/pwojcik/SSDNeRF/data/shapenet'
 
@@ -48,7 +48,7 @@ model = dict(
     decoder=dict(
         type='TriPlaneDecoder',
         interp_mode='bilinear',
-        base_layers=[6 * 3, 64],
+        base_layers=[6 * 5 + 3, 64],
         density_layers=[64, 1],
         color_layers=[64, 3],
         use_dir_enc=True,
@@ -70,7 +70,7 @@ model = dict(
     cache_size=2458)  # number of training scenes
 
 save_interval = 5000
-eval_interval = 20000
+eval_interval = 10000
 code_dir = 'cache/' + name + '/code'
 work_dir = 'work_dirs/' + name
 
@@ -79,6 +79,9 @@ train_cfg = dict(
     density_thresh=0.1,
     extra_scene_step=15,  # -1 + K_in (inner loop iterations)
     n_inverse_rays=2 ** 12,  # ray batch size
+
+    n_inverse_rays_mlti =2 ** 12,  # multiplane ray batch size
+
     n_decoder_rays=2 ** 12,  # ray batch size (used in the final inner iteration that updates the decoder)
     loss_coef=0.1 / (128 * 128),  # 0.1: the exponent in the λ_rend equation; 128 x 128: number of rays per view (image size)
     optimizer=dict(type='Adam', lr=5e-3, weight_decay=0.),

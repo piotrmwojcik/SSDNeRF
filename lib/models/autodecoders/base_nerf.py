@@ -18,6 +18,7 @@ from mmgen.models.architectures.common import get_module_device
 from ...core import custom_meshgrid, eval_psnr, eval_ssim_skimage, reduce_mean, rgetattr, rsetattr, extract_geometry, \
     module_requires_grad, get_cam_rays
 from lib.ops import morton3D, morton3D_invert, packbits
+from ...core.utils.multiplane_pos import REGULAR_POSES, pose_spherical
 
 LPIPS_BS = 32
 
@@ -98,7 +99,8 @@ class BaseNeRF(nn.Module):
                  mean_scale=1.0,
                  train_cfg=dict(),
                  test_cfg=dict(),
-                 pretrained=None):
+                 pretrained=None,
+                 scheduler = None):
         super().__init__()
         self.code_size = code_size
         self.code_activation = build_module(code_activation)
@@ -127,6 +129,8 @@ class BaseNeRF(nn.Module):
         self.train_cfg_backup = dict()
         for key, value in self.test_cfg.get('override_cfg', dict()).items():
             self.train_cfg_backup[key] = rgetattr(self, key, None)
+
+        self.consistency_weight_scheduler = scheduler
 
     def train(self, mode=True):
         if mode:
@@ -275,7 +279,7 @@ class BaseNeRF(nn.Module):
 
     def loss(self, decoder, code, density_bitfield, target_rgbs,
              rays_o, rays_d, dt_gamma=0.0, return_decoder_loss=False, scale_num_ray=1.0,
-             cfg=dict(), **kwargs):
+             cfg=dict(), use_reg_loss = True, **kwargs):
         outputs = decoder(
             rays_o, rays_d, code, density_bitfield, self.grid_size,
             dt_gamma=dt_gamma, perturb=True, return_loss=return_decoder_loss)
@@ -285,7 +289,7 @@ class BaseNeRF(nn.Module):
         pixel_loss = self.pixel_loss(out_rgbs, target_rgbs, **kwargs) * (scale * 3)
         loss = pixel_loss
         loss_dict = dict(pixel_loss=pixel_loss)
-        if self.reg_loss is not None:
+        if self.reg_loss is not None and use_reg_loss:
             reg_loss = self.reg_loss(code, **kwargs)
             loss = loss + reg_loss
             loss_dict.update(reg_loss=reg_loss)
@@ -414,6 +418,7 @@ class BaseNeRF(nn.Module):
         with module_requires_grad(decoder, False):
             n_inverse_steps = cfg.get('n_inverse_steps', 1000)
             n_inverse_rays = cfg.get('n_inverse_rays', 4096)
+            n_consistency_rays = cfg.get('n_consistency_rays', 4096)
 
             num_scenes, num_imgs, h, w, _ = cond_imgs.size()
             num_scene_pixels = num_imgs * h * w
@@ -438,6 +443,14 @@ class BaseNeRF(nn.Module):
             if show_pbar:
                 pbar = mmcv.ProgressBar(n_inverse_steps)
 
+            poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+            poses = np.stack(poses)
+
+            if self.consistency_weight_scheduler is not None:
+                beta = torch.tensor(self.consistency_weight_scheduler.get_last_lr()).to(device)
+            else:
+                beta = torch.tensor(1.0).to(device)
+
             for inverse_step_id in range(n_inverse_steps):
                 code = self.code_activation(
                     torch.stack(code_, dim=0) if isinstance(code_, list)
@@ -450,10 +463,42 @@ class BaseNeRF(nn.Module):
                 inds = raybatch_inds[inverse_step_id % num_raybatch] if raybatch_inds is not None else None
                 rays_o, rays_d, target_rgbs = self.ray_sample(
                     cond_rays_o, cond_rays_d, cond_imgs, n_inverse_rays, sample_inds=inds)
-                out_rgbs, loss, loss_dict = self.loss(
+                out_rgbs, loss_nerf, loss_nerf_dict = self.loss(
                     decoder, code, density_bitfield,
                     target_rgbs, rays_o, rays_d, dt_gamma, scale_num_ray=num_scene_pixels,
-                    cfg=cfg)
+                    cfg=cfg, use_reg_loss=False)
+
+                num_imgs_consistency = 6
+                imgs_consistency = code.reshape(num_scenes, num_imgs_consistency, 3, h, w)
+                imgs_consistency = imgs_consistency.permute(0, 1, 3, 4, 2)
+
+                num_scene_pixels_consistency = num_imgs_consistency * h * w
+                pose_matrices = []
+                fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
+                intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
+
+                for i in range(poses.shape[0]):
+                    M = poses[i]
+                    M = torch.from_numpy(M)
+                    M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                          [0, 1, 0, 0],
+                                          [0, 0, 1, 0],
+                                          [0, 0, 0, 1]]).to(M.device)
+                    M = torch.cat([M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
+                    M = torch.cat([M, M.new_tensor([[0.0, 0.0, 0.0, 1.0]])], dim=-2)
+                    pose_matrices.append(M)
+
+                pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
+
+                rays_o_consistency, rays_d_consistency = get_cam_rays(pose_matrices, intrinsics, h, w)
+
+                rays_o, rays_d, target_rgbs = self.ray_sample(
+                    rays_o_consistency, rays_d_consistency, imgs_consistency, n_consistency_rays, sample_inds=None)
+
+                out_rgbs_consistency, loss_consistency, loss_consistency_dict = self.loss(
+                    decoder, code, density_bitfield,
+                    target_rgbs, rays_o, rays_d, dt_gamma, scale_num_ray=num_scene_pixels_consistency,
+                    cfg=cfg, use_reg_loss=False)
 
                 if prior_grad is not None:
                     if isinstance(code_, list):
@@ -468,6 +513,7 @@ class BaseNeRF(nn.Module):
                     else:
                         code_optimizer.zero_grad()
 
+                loss = loss_nerf + (1-beta) * loss_consistency
                 loss.backward()
 
                 if isinstance(code_optimizer, list):
@@ -485,11 +531,14 @@ class BaseNeRF(nn.Module):
 
                 if show_pbar:
                     pbar.update()
+            if self.consistency_weight_scheduler is not None:
+                self.consistency_weight_scheduler.step()
+                loss_consistency_dict.update(beta=beta)
 
         decoder.train(decoder_training_prev)
 
         return code.detach(), density_grid, density_bitfield, \
-               loss, loss_dict, out_rgbs, target_rgbs
+               loss, loss_nerf, loss_consistency, loss_nerf_dict, loss_consistency_dict, out_rgbs, target_rgbs
 
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
         decoder_training_prev = decoder.training
@@ -548,9 +597,14 @@ class BaseNeRF(nn.Module):
             h, w = cfg['img_size']
         image, depth = self.render(
             decoder, code, density_bitfield, h, w, test_intrinsics, test_poses, cfg=cfg)
-        pred_imgs = image.permute(0, 1, 4, 2, 3).reshape(
-            num_scenes * num_imgs, 3, h, w).clamp(min=0, max=1)
-        pred_imgs = torch.round(pred_imgs * 255) / 255
+
+        def clamp_image(img, num_images):
+            images = img.permute(0, 1, 4, 2, 3).reshape(
+                num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
+            return torch.round(images * 255) / 255
+
+        pred_imgs = clamp_image(image, num_imgs)
+        # pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
 
         if test_imgs is not None:
             test_psnr = eval_psnr(pred_imgs, target_imgs)

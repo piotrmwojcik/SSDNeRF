@@ -1,7 +1,7 @@
 import os
-name = 'ssdnerf_cars_uncond'
+name = 'ssdnerf_mplane_cars_uncond_xyz_lr'
 
-DATA_PATH = '/data/pwojcik/SSDNeRF/data/shapenet'
+DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
 
 cache_path = os.getcwd()
 cache_path = os.path.dirname(cache_path)
@@ -48,7 +48,7 @@ model = dict(
     decoder=dict(
         type='TriPlaneDecoder',
         interp_mode='bilinear',
-        base_layers=[6 * 3, 64],
+        base_layers=[6 * 5 + 3, 64],
         density_layers=[64, 1],
         color_layers=[64, 3],
         use_dir_enc=True,
@@ -70,7 +70,7 @@ model = dict(
     cache_size=2458)  # number of training scenes
 
 save_interval = 5000
-eval_interval = 20000
+eval_interval = 10000
 code_dir = 'cache/' + name + '/code'
 work_dir = 'work_dirs/' + name
 
@@ -127,7 +127,7 @@ lr_config = dict(  # decay schedule of diffusion & decoder lr
     warmup_iters=500,
     warmup_ratio=0.001,
     gamma=0.5,
-    step=[500000])
+    step=[850000])
 checkpoint_config = dict(interval=save_interval, by_epoch=False, max_keep_ckpts=2)
 
 evaluation = [

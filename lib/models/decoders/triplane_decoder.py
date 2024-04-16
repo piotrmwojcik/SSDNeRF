@@ -3,13 +3,101 @@ import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
+import pickle
 import torch.nn.functional as F
+import numpy as np
 
 from mmcv.cnn import xavier_init, constant_init
 from mmgen.models.builder import MODULES
 
 from .base_volume_renderer import VolumeRenderer
 from lib.ops import SHEncoder, TruncExp
+import math
+
+from ...core.utils.multiplane_pos import REGULAR_POSES, pose_spherical
+
+
+class ImagePlanes(torch.nn.Module):
+    def __init__(self, focal, poses, images, count=np.inf, device='cuda'):
+        super(ImagePlanes, self).__init__()
+
+        self.pose_matrices = []
+        self.K_matrices = []
+        self.images = []
+
+        self.focal = focal
+        for i in range(min(count, poses.shape[0])):
+            M = poses[i]
+            M = torch.from_numpy(M)
+            M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                  [0, 1, 0, 0],
+                                  [0, 0, 1, 0],
+                                  [0, 0, 0, 1]]).to(M.device)
+            M = torch.cat([M[:3, :3], (M[:3, 3:] / 0.5)], dim=-1)
+            M = torch.cat([M, M.new_tensor([[0.0, 0.0, 0.0, 1.0]])], dim=-2)
+
+            M = torch.inverse(M)
+            M = M[0:3]
+            self.pose_matrices.append(M)
+
+            image = images[i]
+            # image = torch.from_numpy(image)
+            self.images.append(image)#.permute(2, 0, 1))
+            self.size = float(image.shape[0])
+            K = torch.Tensor(
+                [[1.0254, 0, 0.5],
+                 [0, 1.0254, 0.5],
+                 [0, 0, 1]])
+            self.K_matrices.append(K)
+
+        self.pose_matrices = torch.stack(self.pose_matrices).to(device)
+        self.K_matrices = torch.stack(self.K_matrices).to(device)
+        self.image_plane = torch.stack(self.images).to(device)
+
+    def forward(self, points=None):
+        if points.shape[0] == 1:
+            points = points[0]
+
+
+        points_camera = torch.concat([points, torch.ones(points.shape[0], 1).to(points.device)], 1).to(points.device)
+        points_in_camera_coords = self.pose_matrices @ points_camera.T
+        # camera-origin distance is equal to 1 in points_in_camera_coords
+        ps = self.K_matrices @ points_in_camera_coords
+        pixels = (ps / ps[:, None, 2])[:, 0:2, :]
+        # pixels = pixels / self.size
+        # print("Pixels")
+        # p = pixels.flatten()
+        # print(pixels.min(), torch.quantile(p, 0.05),torch.quantile(p, 0.5), pixels.max())
+        pixels = torch.clamp(pixels, 0, 1)
+        # print("Pixels")
+        # print(pixels)
+        pixels = pixels * 2.0 - 1.0
+        pixels = pixels.permute(0, 2, 1)
+
+        #print(pixels.shape)
+        #print(self.image_plane.shape)
+
+        num_points = pixels.shape[1]
+
+        feats = []
+        for img in range(self.image_plane.shape[0]):
+            feat = torch.nn.functional.grid_sample(
+                self.image_plane[img].unsqueeze(0),
+                pixels[img].unsqueeze(0).unsqueeze(0),
+                mode='bilinear', padding_mode='border', align_corners=False)
+            feats.append(feat)
+
+        feats = torch.stack(feats).squeeze(1)
+        pixels = pixels.permute(1, 0, 2)
+        pixels = pixels.flatten(1)
+
+        feats = feats.permute(2, 3, 0, 1).squeeze(0)
+        feats = feats.reshape(num_points, -1)
+        # print(feats[0].shape) # torch.Size([262144, 96])
+        # print(pixels.shape) # torch.Size([262144, 6])
+
+        feats = torch.cat((feats, pixels), 1)
+        return feats
 
 
 @MODULES.register_module()
@@ -24,7 +112,7 @@ class TriPlaneDecoder(VolumeRenderer):
     def __init__(self,
                  *args,
                  interp_mode='bilinear',
-                 base_layers=[3 * 32, 128],
+                 base_layers=[3 * 6, 128],
                  density_layers=[128, 1],
                  color_layers=[128, 128, 3],
                  use_dir_enc=True,
@@ -101,20 +189,20 @@ class TriPlaneDecoder(VolumeRenderer):
         if self.dir_net is not None:
             constant_init(self.dir_net[-1], 0)
 
-    def xyz_transform(self, xyz):
-        if self.flip_z:
-            xyz = torch.cat([xyz[..., :2], -xyz[..., 2:]], dim=-1)
-        xy = xyz[..., :2]
-        xz = xyz[..., ::2]
-        yz = xyz[..., 1:]
-        if xyz.dim() == 2:
-            out = torch.stack([xy, xz, yz], dim=0).unsqueeze(1)  # (3, 1, num_points, 2)
-        elif xyz.dim() == 3:
-            num_scenes, num_points, _ = xyz.size()
-            out = torch.stack([xy, xz, yz], dim=1).reshape(num_scenes * 3, 1, num_points, 2)
-        else:
-            raise ValueError
-        return out
+    # def xyz_transform(self, xyz):
+    #     if self.flip_z:
+    #         xyz = torch.cat([xyz[..., :2], -xyz[..., 2:]], dim=-1)
+    #     xy = xyz[..., :2]
+    #     xz = xyz[..., ::2]
+    #     yz = xyz[..., 1:]
+    #     if xyz.dim() == 2:
+    #         out = torch.stack([xy, xz, yz], dim=0).unsqueeze(1)  # (3, 1, num_points, 2)
+    #     elif xyz.dim() == 3:
+    #         num_scenes, num_points, _ = xyz.size()
+    #         out = torch.stack([xy, xz, yz], dim=1).reshape(num_scenes * 3, 1, num_points, 2)
+    #     else:
+    #         raise ValueError
+    #     return out
 
     def point_decode(self, xyzs, dirs, code, density_only=False):
         """
@@ -128,36 +216,65 @@ class TriPlaneDecoder(VolumeRenderer):
             code = self.code_dropout(
                 code.reshape(num_scenes * 3, n_channels, h, w)
             ).reshape(num_scenes, 3, n_channels, h, w)
+
+
         if self.scene_base is not None:
             code = code + self.scene_base
-        if isinstance(xyzs, torch.Tensor):
-            assert xyzs.dim() == 3
-            num_points = xyzs.size(-2)
-            point_code = F.grid_sample(
-                code.reshape(num_scenes * 3, -1, h, w),
-                self.xyz_transform(xyzs),
-                mode=self.interp_mode, padding_mode='border', align_corners=False
-            ).reshape(num_scenes, 3, -1, num_points)
-            point_code = point_code.permute(0, 3, 2, 1).reshape(
-                num_scenes * num_points, -1)
-            num_points = [num_points] * num_scenes
-        else:
-            num_points = []
-            point_code = []
-            for code_single, xyzs_single in zip(code, xyzs):
-                num_points_per_scene = xyzs_single.size(-2)
-                # (3, code_chn, num_points_per_scene)
-                point_code_single = F.grid_sample(
-                    code_single,
-                    self.xyz_transform(xyzs_single),
-                    mode=self.interp_mode, padding_mode='border', align_corners=False
-                ).squeeze(-2)
-                point_code_single = point_code_single.permute(2, 1, 0).reshape(
-                    num_points_per_scene, -1)
-                num_points.append(num_points_per_scene)
-                point_code.append(point_code_single)
-            point_code = torch.cat(point_code, dim=0) if len(point_code) > 1 \
-                else point_code[0]
+
+
+        # if isinstance(xyzs, torch.Tensor):
+        #     assert xyzs.dim() == 3
+        #     num_points = xyzs.size(-2)
+        #     point_code = F.grid_sample(
+        #         code.reshape(num_scenes * 3, -1, h, w),
+        #         self.xyz_transform(xyzs),
+        #         mode=self.interp_mode, padding_mode='border', align_corners=False
+        #     ).reshape(num_scenes, 3, -1, num_points)
+        #     point_code = point_code.permute(0, 3, 2, 1).reshape(
+        #         num_scenes * num_points, -1)
+        #     num_points = [num_points] * num_scenes
+
+        # else:
+
+        num_points = []
+        point_code = []
+        image_planes = []
+
+        for code_single, xyzs_single in zip(code, xyzs):
+
+            num_points_per_scene = xyzs_single.size(-2)
+            # (3, code_chn, num_points_per_scene)
+            # point_code_single = F.grid_sample(
+            #     code_single,
+            #     self.xyz_transform(xyzs_single),
+            #     mode=self.interp_mode, padding_mode='border', align_corners=False
+            # ).squeeze(-2)
+
+            poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+
+            image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
+                                      poses=np.stack(poses),
+                                      images=code_single.view(6, 3, code.shape[-2], code.shape[-1]))
+
+            image_planes.append(image_plane)
+            point_code_single = image_plane(xyzs_single)
+
+
+            # print('!!!!--!!!!')
+            # print(point_code_single.permute(2, 1, 0).shape)
+            # # point_code_single = point_code_single.permute(2, 1, 0).reshape(
+            # #     num_points_per_scene, -1)
+            # print('!!!!')
+            # print(point_code_single.shape)
+            # print(xyzs[0].shape)
+            # print(dirs[0].shape)
+            num_points.append(num_points_per_scene)
+            point_code.append(point_code_single)
+
+
+        point_code = torch.cat(point_code, dim=0) if len(point_code) > 1 \
+            else point_code[0]
+
         base_x = self.base_net(point_code)
         base_x_act = self.base_activation(base_x)
         sigmas = self.density_net(base_x_act).squeeze(-1)
@@ -176,6 +293,8 @@ class TriPlaneDecoder(VolumeRenderer):
             rgbs = self.color_net(color_in)
             if self.sigmoid_saturation > 0:
                 rgbs = rgbs * (1 + self.sigmoid_saturation * 2) - self.sigmoid_saturation
+
+
         return sigmas, rgbs, num_points
 
     def point_density_decode(self, xyzs, code, **kwargs):
@@ -186,6 +305,9 @@ class TriPlaneDecoder(VolumeRenderer):
     def visualize(self, code, scene_name, viz_dir, code_range=[-1, 1]):
         num_scenes, _, num_chn, h, w = code.size()
         code_viz = code.cpu().numpy()
+        for code_viz_single, scene_name_single in zip(code_viz, scene_name):
+            with open(os.path.join(viz_dir, 'scene_' + scene_name_single + '.pkl'), 'wb') as file:
+                pickle.dump(code_viz_single, file)
         if not self.flip_z:
             code_viz = code_viz[..., ::-1, :]
         code_viz = code_viz.transpose(0, 1, 3, 2, 4).reshape(num_scenes, 3 * h, num_chn * w)
