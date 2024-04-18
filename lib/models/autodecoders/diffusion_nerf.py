@@ -264,7 +264,7 @@ class DiffusionNeRF(MultiSceneNeRF):
         noise = data.get('noise', None)
         if noise is None:
             noise = torch.randn(
-                (num_batches, *self.code_size), device=get_module_device(self))
+                (num_batches, *(36, 128, 128)), device=get_module_device(self))
 
         with torch.autocast(
                 device_type='cuda',
