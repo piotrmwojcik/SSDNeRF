@@ -53,7 +53,7 @@ class DiffusionNeRF(MultiSceneNeRF):
         if self.code_permute is not None:
             code_diff = code_diff.permute([0] + [axis + 1 for axis in self.code_permute])  # add batch dimension
         if self.code_reshape is not None:
-            code_diff = code_diff.reshape(code.size(0), *self.code_reshape)  # add batch dimension
+            code_diff = code_diff.reshape(code.size(0), *(36, 128, 128))  # add batch dimension
         return code_diff
 
     def code_diff_pr_inv(self, code_diff):
@@ -161,9 +161,9 @@ class DiffusionNeRF(MultiSceneNeRF):
             from mmcv.runner import get_dist_info
             rank, ws = get_dist_info()
 
-            if rank == 0:
-                with open('/data/pwojcik/diff_input3.pkl', 'wb') as handle:
-                    pickle.dump(diff_input, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            #if rank == 0:
+            #    with open('/data/pwojcik/diff_input3.pkl', 'wb') as handle:
+            #        pickle.dump(diff_input, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         with torch.autocast(
                 device_type='cuda',
