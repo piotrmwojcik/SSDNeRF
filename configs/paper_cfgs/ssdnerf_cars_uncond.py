@@ -202,6 +202,7 @@ custom_hooks = [
                'train_cfg.optimizer.lr': 2.5e-3,
                'diffusion.ddpm_loss.freeze_norm': True,
                'pixel_loss.loss_weight': 10.0,
+               'm_pixel_loss.loss_weight': 10.0,
                'reg_loss.loss_weight': 1.5e-3}],
         by_epoch=False)
 ]
