@@ -59,7 +59,7 @@ class DiffusionNeRF(MultiSceneNeRF):
     def code_diff_pr_inv(self, code_diff):
         code = code_diff
         if self.code_reshape is not None:
-            code = code.reshape(code.size(0), *(36, 128, 128))
+            code = code.reshape(code.size(0), *(3, 12, 128, 128))
         if self.code_permute_inv is not None:
             code = code.permute([0] + [axis + 1 for axis in self.code_permute_inv])
         return code
@@ -157,9 +157,9 @@ class DiffusionNeRF(MultiSceneNeRF):
             diff_input = image_multi.reshape(num_scenes, 12, 3, h, w)
             diff_input = diff_input.reshape(num_scenes, 3, 12, h, w)
 
-            import pickle
-            from mmcv.runner import get_dist_info
-            rank, ws = get_dist_info()
+            #import pickle
+            #from mmcv.runner import get_dist_info
+            #rank, ws = get_dist_info()
 
             #if rank == 0:
             #    with open('/data/pwojcik/diff_input3.pkl', 'wb') as handle:
