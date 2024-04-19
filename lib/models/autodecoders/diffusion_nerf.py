@@ -38,8 +38,6 @@ class DiffusionNeRF(MultiSceneNeRF):
         self.image_cond = image_cond
         self.code_permute = code_permute
         self.code_reshape = code_reshape
-        print('!!')
-        print(code_permute)
         self.code_reshape_inv = [self.code_size[axis] for axis in self.code_permute] if code_permute is not None \
             else self.code_size
         self.code_permute_inv = [self.code_permute.index(axis) for axis in range(len(self.code_permute))] \
@@ -61,7 +59,7 @@ class DiffusionNeRF(MultiSceneNeRF):
     def code_diff_pr_inv(self, code_diff):
         code = code_diff
         if self.code_reshape is not None:
-            code = code.reshape(code.size(0), *self.code_reshape_inv)
+            code = code.reshape(code.size(0), *(36, 128, 128))
         if self.code_permute_inv is not None:
             code = code.permute([0] + [axis + 1 for axis in self.code_permute_inv])
         return code
