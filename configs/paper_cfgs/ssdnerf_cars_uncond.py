@@ -42,7 +42,7 @@ model = dict(
             rescale_mode='timestep_weight',
             log_cfgs=dict(
                 type='quartile', prefix_name='loss_mse', total_timesteps=1000),
-            data_info=dict(pred='x_0_pred', target='v_t'),
+            data_info=dict(pred='x_0_pred'),
             weight_scale=4.0,  # c_diff (diffusion weight constant)
             scale_norm=True)),
     decoder=dict(
