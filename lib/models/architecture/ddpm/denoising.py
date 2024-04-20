@@ -8,6 +8,8 @@ from mmgen.models.architectures.ddpm.modules import TimeEmbedding, EmbedSequenti
 from mmgen.models.architectures.ddpm.denoising import DenoisingUnet
 from mmgen.models.builder import MODULES, build_module
 
+from lib.core.utils.multiplane_pos import REGULAR_POSES
+
 
 @MODULES.register_module()
 class DenoisingUnetMod(DenoisingUnet):
@@ -188,7 +190,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
         self.init_weights(pretrained)
 
-    def forward(self, x_t, t, label=None, decoder=None, concat_cond=None, return_noise=False):
+    def forward(self, x_t, t, label=None, decoder=None, density_bitfield=None, concat_cond=None, return_noise=False):
         if self.use_rescale_timesteps:
             t = t.float() * (1000.0 / self.num_timesteps)
         embedding = self.time_embedding(t)
@@ -213,7 +215,47 @@ class DenoisingUnetMod(DenoisingUnet):
             h = block(torch.cat([h, hs.pop()], dim=1), embedding)
         outputs = self.out(h)
 
-        print('!!!')
-        print(outputs.shape)
+        num_scenes = 8
+        with torch.no_grad():
+            from lib.core.utils.multiplane_pos import pose_spherical
+            import numpy as np
 
-        return outputs
+            poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+            poses = np.stack(poses)
+            pose_matrices = []
+
+            device = 'cuda'
+
+            fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
+            intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
+
+            for i in range(poses.shape[0]):
+                M = poses[i]
+                M = torch.from_numpy(M)
+                M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                      [0, 1, 0, 0],
+                                      [0, 0, 1, 0],
+                                      [0, 0, 0, 1]]).to(M.device)
+
+                M = torch.cat(
+                    [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
+                # M = torch.inverse(M)
+                pose_matrices.append(M)
+
+            pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
+            h, w = 128, 128
+            image_multi, depth_multi = self.render(decoder, outputs, density_bitfield, h, w, intrinsics, pose_matrices,
+                                                   cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
+
+            def clamp_image(img, num_images):
+                images = img.permute(0, 1, 4, 2, 3).reshape(
+                    num_scenes * num_images, 3, h, w)  # .clamp(min=0, max=1)
+                return images
+                # return torch.round(images * 255) / 255
+
+            image_multi = clamp_image(image_multi, poses.shape[0])
+
+            image_multi = image_multi.reshape(num_scenes, 6, 3, h, w)
+            image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
+
+        return image_multi
