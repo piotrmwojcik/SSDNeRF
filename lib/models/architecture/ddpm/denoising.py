@@ -45,6 +45,7 @@ class DenoisingUnetMod(DenoisingUnet):
         super(DenoisingUnet, self).__init__()
 
         self.num_classes = num_classes
+        self.nerf = None
         self.num_timesteps = num_timesteps
         self.use_rescale_timesteps = use_rescale_timesteps
 
@@ -216,7 +217,6 @@ class DenoisingUnetMod(DenoisingUnet):
         outputs = self.out(h)
 
         num_scenes = 8
-        print('!!!')
         with torch.no_grad():
             from lib.core.utils.multiplane_pos import pose_spherical
             import numpy as np
