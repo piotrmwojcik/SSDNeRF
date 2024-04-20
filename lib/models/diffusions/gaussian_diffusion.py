@@ -32,6 +32,7 @@ class GaussianDiffusion(nn.Module):
         super().__init__()
         # build denoising module in this function
         self.num_classes = num_classes
+        self.nerf = None
         self.num_timesteps = num_timesteps
         self.sample_method = sample_method
         self._denoising_cfg = deepcopy(denoising)
