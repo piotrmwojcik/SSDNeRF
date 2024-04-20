@@ -203,6 +203,9 @@ class DenoisingUnetMod(DenoisingUnet):
         rays_o, rays_d = get_cam_rays(poses, intrinsics, h, w)
         num_scenes, num_imgs, h, w, _ = rays_o.size()
 
+        print('!!!!!!!')
+        print(num_scenes)
+
         rays_o = rays_o.reshape(num_scenes, num_imgs * h * w, 3)
         rays_d = rays_d.reshape(num_scenes, num_imgs * h * w, 3)
         max_render_rays = cfg.get('max_render_rays', -1)
