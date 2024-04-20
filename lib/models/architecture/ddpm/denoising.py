@@ -200,6 +200,9 @@ class DenoisingUnetMod(DenoisingUnet):
         rays_o, rays_d = get_cam_rays(poses, intrinsics, h, w)
         num_scenes, num_imgs, h, w, _ = rays_o.size()
 
+        print('!!!')
+        print(num_scenes, num_imgs, h, w)
+
         rays_o = rays_o.reshape(num_scenes, num_imgs * h * w, 3)
         rays_d = rays_d.reshape(num_scenes, num_imgs * h * w, 3)
         max_render_rays = cfg.get('max_render_rays', -1)
@@ -218,10 +221,6 @@ class DenoisingUnetMod(DenoisingUnet):
                 rays_o_single, rays_d_single,
                 code, density_bitfield, 64,
                 dt_gamma=dt_gamma, perturb=False)
-            print('!!!!')
-            print(code.shape)
-            print(density_bitfield.shape)
-            print(self.grid_size)
             weights = torch.stack(outputs['weights_sum'], dim=0) if num_scenes > 1 else outputs['weights_sum'][0]
             rgbs = (torch.stack(outputs['image'], dim=0) if num_scenes > 1 else outputs['image'][0]) \
                    + bg_color * (1 - weights.unsqueeze(-1))
