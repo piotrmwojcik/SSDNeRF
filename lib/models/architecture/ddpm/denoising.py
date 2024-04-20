@@ -192,6 +192,7 @@ class DenoisingUnetMod(DenoisingUnet):
         self.init_weights(pretrained)
 
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
+        code = code.reshape(8, 3, 6, 128, 128)
         decoder_training_prev = decoder.training
         decoder.train(False)
 
@@ -286,7 +287,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
         pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
         h, w = 128, 128
-        image_multi, depth_multi = self.render(decoder, outputs.reshape(8, 3, 6, 128, 128), density_bitfield, h, w, intrinsics, pose_matrices,
+        image_multi, depth_multi = self.render(decoder, outputs, density_bitfield, h, w, intrinsics, pose_matrices,
                                                cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
 
         def clamp_image(img, num_images):
@@ -299,8 +300,6 @@ class DenoisingUnetMod(DenoisingUnet):
         image_multi = image_multi.reshape(num_scenes, 6, 3, h, w)
         image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
 
-        print('!!!')
-        print(outputs.data.grad)
 
         with torch.no_grad():
             image_multi.grad = outputs.grad.clone()
