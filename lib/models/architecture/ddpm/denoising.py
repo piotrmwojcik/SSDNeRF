@@ -310,13 +310,5 @@ class DenoisingUnetMod(DenoisingUnet):
             can_planes = image_multi.reshape(num_scenes, 6, 3, h, w)
             can_planes = can_planes.reshape(num_scenes, 3, 6, h, w)
 
-            import pickle
-            from mmcv.runner import get_dist_info
-            rank, ws = get_dist_info()
-
-            if rank == 0:
-                with open(f'/data/pwojcik/can_planes_{tm}.pkl', 'wb') as handle:
-                    pickle.dump(can_planes, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
 
         return image_multi

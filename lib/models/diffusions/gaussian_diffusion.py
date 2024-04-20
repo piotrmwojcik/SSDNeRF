@@ -443,6 +443,14 @@ class GaussianDiffusion(nn.Module):
             x_t, t, grad_guide_fn=grad_guide_fn, concat_cond=concat_cond,
             cfg=cfg, decoder=decoder, density_bitfield=density_bitfield, update_denoising_output=True)
 
+        import pickle
+        from mmcv.runner import get_dist_info
+        rank, ws = get_dist_info()
+
+        if rank == 0:
+            with open(f'/data/pwojcik/denoising_output.pkl', 'wb') as handle:
+                pickle.dump(denoising_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
         loss = self.loss(denoising_output, planes, noise, t, mean, std)
         log_vars = self.ddpm_loss.log_vars
         log_vars.update(loss_ddpm_mse=float(loss))
