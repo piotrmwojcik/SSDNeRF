@@ -236,6 +236,7 @@ class DenoisingUnetMod(DenoisingUnet):
         return out_image, out_depth
 
     def forward(self, x_t, t, label=None, decoder=None, density_bitfield=None, concat_cond=None, return_noise=False):
+        tm = t
         if self.use_rescale_timesteps:
             t = t.float() * (1000.0 / self.num_timesteps)
         embedding = self.time_embedding(t)
@@ -314,7 +315,7 @@ class DenoisingUnetMod(DenoisingUnet):
             rank, ws = get_dist_info()
 
             if rank == 0:
-                with open('/data/pwojcik/can_planes.pkl', 'wb') as handle:
+                with open(f'/data/pwojcik/can_planes_{tm}.pkl', 'wb') as handle:
                     pickle.dump(can_planes, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
