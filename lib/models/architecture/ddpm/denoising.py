@@ -213,6 +213,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
         out_image = []
         out_depth = []
+        bg_color = 1
         for rays_o_single, rays_d_single in zip(rays_o, rays_d):
             outputs = decoder(
                 rays_o_single, rays_d_single,
@@ -220,7 +221,7 @@ class DenoisingUnetMod(DenoisingUnet):
                 dt_gamma=dt_gamma, perturb=False)
             weights = torch.stack(outputs['weights_sum'], dim=0) if num_scenes > 1 else outputs['weights_sum'][0]
             rgbs = (torch.stack(outputs['image'], dim=0) if num_scenes > 1 else outputs['image'][0]) \
-                   + self.bg_color * (1 - weights.unsqueeze(-1))
+                   + bg_color * (1 - weights.unsqueeze(-1))
             depth = torch.stack(outputs['depth'], dim=0) if num_scenes > 1 else outputs['depth'][0]
             out_image.append(rgbs)
             out_depth.append(depth)
