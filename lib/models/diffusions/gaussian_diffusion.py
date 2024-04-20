@@ -26,7 +26,7 @@ class GaussianDiffusion(nn.Module):
                  sample_method='ddim',
                  timestep_sampler=dict(type='UniformTimeStepSampler'),
                  denoising_var_mode='FIXED_LARGE',
-                 denoising_mean_mode='V',
+                 denoising_mean_mode='START_X',
                  train_cfg=None,
                  test_cfg=None):
         super().__init__()
