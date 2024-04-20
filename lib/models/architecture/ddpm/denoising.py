@@ -286,7 +286,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
             pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
             h, w = 128, 128
-            image_multi, depth_multi = self.render(decoder, outputs, density_bitfield, h, w, intrinsics, pose_matrices,
+            image_multi, depth_multi = self.render(decoder, outputs.reshape(3, 6, 128, 128), density_bitfield, h, w, intrinsics, pose_matrices,
                                                    cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
 
             def clamp_image(img, num_images):
