@@ -459,6 +459,6 @@ class GaussianDiffusion(nn.Module):
 
     def forward(self, data, return_loss=False, planes=None, decoder=None, **kwargs):
         if return_loss:
-            return self.forward_train(data, decoder=decoder, planes=None, **kwargs)
+            return self.forward_train(data, decoder=decoder, planes=planes, **kwargs)
 
         return self.forward_test(data, **kwargs)
