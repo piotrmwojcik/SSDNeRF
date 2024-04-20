@@ -298,4 +298,9 @@ class DenoisingUnetMod(DenoisingUnet):
 
             image_multi = clamp_image(image_multi, poses.shape[0])
 
+            print('!!!')
+            print(image_multi.shape)
+            print(x_t.shape)
+
+
         return image_multi
