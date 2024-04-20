@@ -442,9 +442,6 @@ class GaussianDiffusion(nn.Module):
         _, denoising_output = self.pred_x_0(
             x_t, t, grad_guide_fn=grad_guide_fn, concat_cond=concat_cond,
             cfg=cfg, decoder=decoder, density_bitfield=density_bitfield, update_denoising_output=True)
-        print('!!!')
-        print(denoising_output.requires_grad)
-        print(planes.requires_grad)
         loss = self.loss(denoising_output, planes, noise, t, mean, std)
         log_vars = self.ddpm_loss.log_vars
         log_vars.update(loss_ddpm_mse=float(loss))
