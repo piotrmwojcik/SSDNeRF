@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_cars_uncond_test'
+name = 'ssdnerf_cars_uncond_smart'
 
 DATA_PATH = '/data/pwojcik/SSDNeRF/data/shapenet'
 
