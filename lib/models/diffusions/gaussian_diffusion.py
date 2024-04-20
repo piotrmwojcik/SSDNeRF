@@ -451,6 +451,9 @@ class GaussianDiffusion(nn.Module):
             with open(f'/data/pwojcik/denoising_output.pkl', 'wb') as handle:
                 pickle.dump(denoising_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+            with open(f'/data/pwojcik/denoising_planes.pkl', 'wb') as handle:
+                pickle.dump(planes, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
         loss = self.loss(denoising_output, planes, noise, t, mean, std)
         log_vars = self.ddpm_loss.log_vars
         log_vars.update(loss_ddpm_mse=float(loss))
