@@ -192,6 +192,9 @@ class DenoisingUnetMod(DenoisingUnet):
         self.init_weights(pretrained)
 
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
+        decoder_training_prev = decoder.training
+        decoder.train(False)
+
         code = code.reshape(code.size(0), *(3, 6, 128, 128))
 
         dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
@@ -199,9 +202,6 @@ class DenoisingUnetMod(DenoisingUnet):
         dt_gamma = dt_gamma_scale * 2 / (intrinsics[..., 0] + intrinsics[..., 1]).mean(dim=-1)
         rays_o, rays_d = get_cam_rays(poses, intrinsics, h, w)
         num_scenes, num_imgs, h, w, _ = rays_o.size()
-
-        print('!!!')
-        print(num_scenes, num_imgs, h, w)
 
         rays_o = rays_o.reshape(num_scenes, num_imgs * h * w, 3)
         rays_d = rays_d.reshape(num_scenes, num_imgs * h * w, 3)
@@ -232,6 +232,7 @@ class DenoisingUnetMod(DenoisingUnet):
         out_image = out_image.reshape(num_scenes, num_imgs, h, w, 3)
         out_depth = out_depth.reshape(num_scenes, num_imgs, h, w)
 
+        decoder.train(decoder_training_prev)
         return out_image, out_depth
 
     def forward(self, x_t, t, label=None, decoder=None, density_bitfield=None, concat_cond=None, return_noise=False):
