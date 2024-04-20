@@ -192,7 +192,7 @@ class DenoisingUnetMod(DenoisingUnet):
         self.init_weights(pretrained)
 
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
-        code = code.reshape(8, 3, 6, 128, 128)
+        code = code.reshape(8, 6, 3, 128, 128)
 
         dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
         # (num_scenes,)
