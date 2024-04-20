@@ -27,7 +27,6 @@ class DiffusionNeRF(MultiSceneNeRF):
         super().__init__(*args, **kwargs)
         diffusion.update(train_cfg=self.train_cfg, test_cfg=self.test_cfg)
         self.diffusion = build_module(diffusion)
-        self.diffusion.denoising.nerf = self
         self.diffusion_use_ema = diffusion_use_ema
         if self.diffusion_use_ema:
             self.diffusion_ema = deepcopy(self.diffusion)
