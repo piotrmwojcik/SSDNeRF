@@ -216,7 +216,7 @@ class DenoisingUnetMod(DenoisingUnet):
         for rays_o_single, rays_d_single in zip(rays_o, rays_d):
             outputs = decoder(
                 rays_o_single, rays_d_single,
-                code, density_bitfield, self.grid_size,
+                code, density_bitfield, grid_size=64,
                 dt_gamma=dt_gamma, perturb=False)
             weights = torch.stack(outputs['weights_sum'], dim=0) if num_scenes > 1 else outputs['weights_sum'][0]
             rgbs = (torch.stack(outputs['image'], dim=0) if num_scenes > 1 else outputs['image'][0]) \
