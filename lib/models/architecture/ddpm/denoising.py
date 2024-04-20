@@ -304,8 +304,6 @@ class DenoisingUnetMod(DenoisingUnet):
             image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
 
             image_multi.requires_grad = True
-            print('!!!')
-            print(outputs.requires_grad)
-            image_multi.grad = outputs.grad.data.clone()
+            image_multi.grad = outputs.grad.clone()
 
         return image_multi
