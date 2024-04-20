@@ -216,7 +216,7 @@ class DenoisingUnetMod(DenoisingUnet):
         for rays_o_single, rays_d_single in zip(rays_o, rays_d):
             outputs = decoder(
                 rays_o_single, rays_d_single,
-                code, density_bitfield, self.grid_size,
+                code, density_bitfield, 64,
                 dt_gamma=dt_gamma, perturb=False)
             print('!!!!')
             print(code.shape)
