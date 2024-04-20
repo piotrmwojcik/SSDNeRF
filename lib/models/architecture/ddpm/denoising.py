@@ -8,7 +8,7 @@ from mmgen.models.architectures.ddpm.modules import TimeEmbedding, EmbedSequenti
 from mmgen.models.architectures.ddpm.denoising import DenoisingUnet
 from mmgen.models.builder import MODULES, build_module
 
-from lib import get_cam_rays
+from lib import get_cam_rays, module_requires_grad
 from lib.core.utils.multiplane_pos import REGULAR_POSES
 
 
@@ -194,9 +194,6 @@ class DenoisingUnetMod(DenoisingUnet):
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
         code = code.reshape(8, 3, 6, 128, 128)
 
-        #decoder_training_prev = decoder.training
-        #decoder.train(False)
-
         dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
         # (num_scenes,)
         dt_gamma = dt_gamma_scale * 2 / (intrinsics[..., 0] + intrinsics[..., 1]).mean(dim=-1)
@@ -232,7 +229,6 @@ class DenoisingUnetMod(DenoisingUnet):
         out_image = out_image.reshape(num_scenes, num_imgs, h, w, 3)
         out_depth = out_depth.reshape(num_scenes, num_imgs, h, w)
 
-        #decoder.train(decoder_training_prev)
         return out_image, out_depth
 
     def forward(self, x_t, t, label=None, decoder=None, density_bitfield=None, concat_cond=None, return_noise=False):
@@ -261,44 +257,46 @@ class DenoisingUnetMod(DenoisingUnet):
         outputs = self.out(h)
 
         num_scenes = 8
-        from lib.core.utils.multiplane_pos import pose_spherical
-        import numpy as np
 
-        poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
-        poses = np.stack(poses)
-        pose_matrices = []
+        with module_requires_grad(decoder, False), torch.enable_grad():
+            from lib.core.utils.multiplane_pos import pose_spherical
+            import numpy as np
 
-        device = 'cuda'
+            poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+            poses = np.stack(poses)
+            pose_matrices = []
 
-        fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
-        intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
+            device = 'cuda'
 
-        for i in range(poses.shape[0]):
-            M = poses[i]
-            M = torch.from_numpy(M)
-            M = M @ torch.Tensor([[-1, 0, 0, 0],
-                                  [0, 1, 0, 0],
-                                  [0, 0, 1, 0],
-                                  [0, 0, 0, 1]]).to(M.device)
+            fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
+            intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
 
-            M = torch.cat(
-                [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
-            # M = torch.inverse(M)
-            pose_matrices.append(M)
+            for i in range(poses.shape[0]):
+                M = poses[i]
+                M = torch.from_numpy(M)
+                M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                      [0, 1, 0, 0],
+                                      [0, 0, 1, 0],
+                                      [0, 0, 0, 1]]).to(M.device)
 
-        pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
-        h, w = 128, 128
-        image_multi, depth_multi = self.render(decoder, outputs, density_bitfield, h, w, intrinsics, pose_matrices,
-                                               cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
+                M = torch.cat(
+                    [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
+                # M = torch.inverse(M)
+                pose_matrices.append(M)
 
-        def clamp_image(img, num_images):
-            images = img.permute(0, 1, 4, 2, 3).reshape(
-                num_scenes * num_images, 3, h, w)  # .clamp(min=0, max=1)
-            return images
-            # return torch.round(images * 255) / 255
+            pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
+            h, w = 128, 128
+            image_multi, depth_multi = self.render(decoder, outputs, density_bitfield, h, w, intrinsics, pose_matrices,
+                                                   cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
 
-        image_multi = clamp_image(image_multi, poses.shape[0])
-        image_multi = image_multi.reshape(num_scenes, 6, 3, h, w)
-        image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
+            def clamp_image(img, num_images):
+                images = img.permute(0, 1, 4, 2, 3).reshape(
+                    num_scenes * num_images, 3, h, w)  # .clamp(min=0, max=1)
+                return images
+                # return torch.round(images * 255) / 255
+
+            image_multi = clamp_image(image_multi, poses.shape[0])
+            image_multi = image_multi.reshape(num_scenes, 6, 3, h, w)
+            image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
 
         return image_multi
