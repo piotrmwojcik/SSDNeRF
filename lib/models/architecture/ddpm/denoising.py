@@ -193,6 +193,9 @@ class DenoisingUnetMod(DenoisingUnet):
 
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
         code = code.reshape(8, 3, 6, 128, 128)
+        print('!!!!')
+        print(code.requires_grad)
+
         decoder_training_prev = decoder.training
         decoder.train(False)
 
