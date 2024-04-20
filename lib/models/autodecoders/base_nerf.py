@@ -531,6 +531,7 @@ class BaseNeRF(nn.Module):
                 rays_o_single, rays_d_single,
                 code, density_bitfield, self.grid_size,
                 dt_gamma=dt_gamma, perturb=False)
+            print(outputs)
             weights = torch.stack(outputs['weights_sum'], dim=0) if num_scenes > 1 else outputs['weights_sum'][0]
             rgbs = (torch.stack(outputs['image'], dim=0) if num_scenes > 1 else outputs['image'][0]) \
                    + self.bg_color * (1 - weights.unsqueeze(-1))

@@ -154,8 +154,8 @@ class DiffusionNeRF(MultiSceneNeRF):
 
             image_multi = clamp_image(image_multi, poses.shape[0])
 
-            diff_input = image_multi.reshape(num_scenes, 6, 3, h, w)
-            diff_input = diff_input.reshape(num_scenes, 3, 6, h, w)
+            can_planes = image_multi.reshape(num_scenes, 6, 3, h, w)
+            can_planes = can_planes.reshape(num_scenes, 3, 6, h, w)
 
             #import pickle
             #from mmcv.runner import get_dist_info
@@ -170,7 +170,7 @@ class DiffusionNeRF(MultiSceneNeRF):
                 enabled=self.autocast_dtype is not None,
                 dtype=getattr(torch, self.autocast_dtype) if self.autocast_dtype is not None else None):
             loss_diffusion, log_vars = diffusion(
-                self.code_diff_pr(code), decoder=decoder, planes=diff_input, density_bitfield=density_bitfield, concat_cond=concat_cond, return_loss=True,
+                self.code_diff_pr(code), decoder=decoder, planes=can_planes, density_bitfield=density_bitfield, concat_cond=concat_cond, return_loss=True,
                 x_t_detach=x_t_detach, cfg=self.train_cfg)
         loss_diffusion.backward()
         for key in optimizer.keys():
@@ -210,7 +210,7 @@ class DiffusionNeRF(MultiSceneNeRF):
             log_vars.update(log_vars_decoder)
 
             loss_m_decoder, log_vars_m_decoder, out_m_rgbs, target_m_rgbs = self.loss_decoder(
-                decoder_multiplane, diff_input, density_bitfield, cond_rays_o, cond_rays_d,
+                decoder_multiplane, can_planes, density_bitfield, cond_rays_o, cond_rays_d,
                 cond_imgs, dt_gamma, cfg=self.train_cfg, m_pixel=True)
             log_vars.update({'m_' + key: value for key, value in log_vars_m_decoder.items()})
 

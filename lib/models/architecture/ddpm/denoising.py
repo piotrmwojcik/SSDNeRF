@@ -194,9 +194,6 @@ class DenoisingUnetMod(DenoisingUnet):
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
         code = code.reshape(code.size(0), *(3, 6, 128, 128))
 
-        print('!!!!')
-        print(code.shape)
-
         dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
         # (num_scenes,)
         dt_gamma = dt_gamma_scale * 2 / (intrinsics[..., 0] + intrinsics[..., 1]).mean(dim=-1)
@@ -219,10 +216,8 @@ class DenoisingUnetMod(DenoisingUnet):
         for rays_o_single, rays_d_single in zip(rays_o, rays_d):
             outputs = decoder(
                 rays_o_single, rays_d_single,
-                code, density_bitfield, grid_size=64,
+                code, density_bitfield, self.grid_size,
                 dt_gamma=dt_gamma, perturb=False)
-            print('!!!')
-            print(outputs)
             weights = torch.stack(outputs['weights_sum'], dim=0) if num_scenes > 1 else outputs['weights_sum'][0]
             rgbs = (torch.stack(outputs['image'], dim=0) if num_scenes > 1 else outputs['image'][0]) \
                    + bg_color * (1 - weights.unsqueeze(-1))
