@@ -194,8 +194,8 @@ class DenoisingUnetMod(DenoisingUnet):
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
         code = code.reshape(8, 3, 6, 128, 128)
 
-        decoder_training_prev = decoder.training
-        decoder.train(False)
+        #decoder_training_prev = decoder.training
+        #decoder.train(False)
 
         dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
         # (num_scenes,)
@@ -232,9 +232,7 @@ class DenoisingUnetMod(DenoisingUnet):
         out_image = out_image.reshape(num_scenes, num_imgs, h, w, 3)
         out_depth = out_depth.reshape(num_scenes, num_imgs, h, w)
 
-        decoder.train(decoder_training_prev)
-        print('!!!!')
-        print(out_image.requires_grad)
+        #decoder.train(decoder_training_prev)
         return out_image, out_depth
 
     def forward(self, x_t, t, label=None, decoder=None, density_bitfield=None, concat_cond=None, return_noise=False):
