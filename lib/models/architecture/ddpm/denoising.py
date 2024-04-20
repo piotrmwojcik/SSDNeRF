@@ -299,6 +299,9 @@ class DenoisingUnetMod(DenoisingUnet):
         image_multi = image_multi.reshape(num_scenes, 6, 3, h, w)
         image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
 
+        print('!!!')
+        print(outputs.requires_grad)
+
         with torch.no_grad():
             image_multi.grad = outputs.grad.clone()
         return image_multi
