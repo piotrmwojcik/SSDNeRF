@@ -457,7 +457,7 @@ class GaussianDiffusion(nn.Module):
         assert data.dim() == 4
         return self.sample_from_noise(data, **kwargs)
 
-    def forward(self, data, return_loss=False, decoder=None, **kwargs):
+    def forward(self, data, return_loss=False, planes=None, decoder=None, **kwargs):
         if return_loss:
             return self.forward_train(data, decoder=decoder, planes=None, **kwargs)
 
