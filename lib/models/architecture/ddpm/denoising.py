@@ -216,6 +216,7 @@ class DenoisingUnetMod(DenoisingUnet):
         outputs = self.out(h)
 
         num_scenes = 8
+        print('!!!')
         with torch.no_grad():
             from lib.core.utils.multiplane_pos import pose_spherical
             import numpy as np
