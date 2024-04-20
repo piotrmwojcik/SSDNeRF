@@ -8,6 +8,7 @@ from mmgen.models.architectures.ddpm.modules import TimeEmbedding, EmbedSequenti
 from mmgen.models.architectures.ddpm.denoising import DenoisingUnet
 from mmgen.models.builder import MODULES, build_module
 
+from lib import get_cam_rays
 from lib.core.utils.multiplane_pos import REGULAR_POSES
 
 
@@ -45,7 +46,6 @@ class DenoisingUnetMod(DenoisingUnet):
         super(DenoisingUnet, self).__init__()
 
         self.num_classes = num_classes
-        self.nerf = None
         self.num_timesteps = num_timesteps
         self.use_rescale_timesteps = use_rescale_timesteps
 
@@ -191,6 +191,47 @@ class DenoisingUnetMod(DenoisingUnet):
 
         self.init_weights(pretrained)
 
+    def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
+        decoder_training_prev = decoder.training
+        decoder.train(False)
+
+        dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
+        # (num_scenes,)
+        dt_gamma = dt_gamma_scale * 2 / (intrinsics[..., 0] + intrinsics[..., 1]).mean(dim=-1)
+        rays_o, rays_d = get_cam_rays(poses, intrinsics, h, w)
+        num_scenes, num_imgs, h, w, _ = rays_o.size()
+
+        rays_o = rays_o.reshape(num_scenes, num_imgs * h * w, 3)
+        rays_d = rays_d.reshape(num_scenes, num_imgs * h * w, 3)
+        max_render_rays = cfg.get('max_render_rays', -1)
+        if 0 < max_render_rays < rays_o.size(1):
+            rays_o = rays_o.split(max_render_rays, dim=1)
+            rays_d = rays_d.split(max_render_rays, dim=1)
+        else:
+            rays_o = [rays_o]
+            rays_d = [rays_d]
+
+        out_image = []
+        out_depth = []
+        for rays_o_single, rays_d_single in zip(rays_o, rays_d):
+            outputs = decoder(
+                rays_o_single, rays_d_single,
+                code, density_bitfield, self.grid_size,
+                dt_gamma=dt_gamma, perturb=False)
+            weights = torch.stack(outputs['weights_sum'], dim=0) if num_scenes > 1 else outputs['weights_sum'][0]
+            rgbs = (torch.stack(outputs['image'], dim=0) if num_scenes > 1 else outputs['image'][0]) \
+                   + self.bg_color * (1 - weights.unsqueeze(-1))
+            depth = torch.stack(outputs['depth'], dim=0) if num_scenes > 1 else outputs['depth'][0]
+            out_image.append(rgbs)
+            out_depth.append(depth)
+        out_image = torch.cat(out_image, dim=1) if len(out_image) > 1 else out_image[0]
+        out_depth = torch.cat(out_depth, dim=1) if len(out_depth) > 1 else out_depth[0]
+        out_image = out_image.reshape(num_scenes, num_imgs, h, w, 3)
+        out_depth = out_depth.reshape(num_scenes, num_imgs, h, w)
+
+        decoder.train(decoder_training_prev)
+        return out_image, out_depth
+
     def forward(self, x_t, t, label=None, decoder=None, density_bitfield=None, concat_cond=None, return_noise=False):
         if self.use_rescale_timesteps:
             t = t.float() * (1000.0 / self.num_timesteps)
@@ -245,7 +286,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
             pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
             h, w = 128, 128
-            image_multi, depth_multi = self.nerf.render(decoder, outputs, density_bitfield, h, w, intrinsics, pose_matrices,
+            image_multi, depth_multi = self.render(decoder, outputs, density_bitfield, h, w, intrinsics, pose_matrices,
                                                    cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
 
             def clamp_image(img, num_images):
