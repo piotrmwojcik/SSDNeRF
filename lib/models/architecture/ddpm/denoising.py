@@ -338,7 +338,7 @@ class DenoisingUnetMod(DenoisingUnet):
         decoder.train(decoder_training_prev)
         return out_image, out_depth
 
-    def forward(self, x_t, t, label=None, decoder=None, density_bitfield=None, concat_cond=None, return_noise=False):
+    def forward(self, x_t, t, label=None, decoder=None, concat_cond=None, return_noise=False):
         if self.use_rescale_timesteps:
             t = t.float() * (1000.0 / self.num_timesteps)
         embedding = self.time_embedding(t)

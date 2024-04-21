@@ -177,8 +177,7 @@ class GaussianDiffusion(nn.Module):
         std = var_to_tensor(self.sqrt_one_minus_alphas_bar, t.cpu(), tar_shape, device)
         return x_0 * mean + noise * std, mean, std
 
-    def pred_x_0(self, x_t, t, grad_guide_fn=None, concat_cond=None, decoder=None, density_bitfield=None,
-                 cfg=dict(), update_denoising_output=False):
+    def pred_x_0(self, x_t, t, grad_guide_fn=None, concat_cond=None, decoder=None, cfg=dict(), update_denoising_output=False):
         clip_denoised = cfg.get('clip_denoised', True)
         clip_range = cfg.get('clip_range', [-1, 1])
         guidance_gain = cfg.get('guidance_gain', 1.0)
@@ -196,7 +195,7 @@ class GaussianDiffusion(nn.Module):
             grad_enabled_prev = torch.is_grad_enabled()
             torch.set_grad_enabled(True)
 
-        denoising_output = self.denoising(x_t, t, decoder=decoder, density_bitfield=density_bitfield, concat_cond=concat_cond)
+        denoising_output = self.denoising(x_t, t, decoder=decoder, concat_cond=concat_cond)
 
         if self.denoising_mean_mode.upper() == 'EPS':
             x_0_pred = (x_t - sqrt_one_minus_alpha_bar_t * denoising_output) / sqrt_alpha_bar_t
@@ -367,7 +366,7 @@ class GaussianDiffusion(nn.Module):
 
         return x_prev, x_0_pred
 
-    def ddpm_sample(self, noise, decoder=None, show_pbar=False, concat_cond=None, **kwargs):
+    def ddpm_sample(self, noise, show_pbar=False, concat_cond=None, **kwargs):
         device = get_module_device(self)
         x_t = noise
         num_timesteps = self.test_cfg.get('num_timesteps', self.num_timesteps)
@@ -425,7 +424,7 @@ class GaussianDiffusion(nn.Module):
         return self.ddpm_loss(loss_kwargs)
 
     def forward_train(self, x_0, concat_cond=None, grad_guide_fn=None, cfg=dict(),
-                      x_t_detach=False, decoder=None, density_bitfield=None, planes=None, **kwargs):
+                      x_t_detach=False, decoder=None, planes=None, **kwargs):
         device = get_module_device(self)
 
         assert x_0.dim() == 4
@@ -445,7 +444,7 @@ class GaussianDiffusion(nn.Module):
 
         _, denoising_output = self.pred_x_0(
             x_t, t, grad_guide_fn=grad_guide_fn, concat_cond=concat_cond,
-            cfg=cfg, decoder=decoder, density_bitfield=density_bitfield, update_denoising_output=True)
+            cfg=cfg, decoder=decoder, update_denoising_output=True)
 
         import pickle
         from mmcv.runner import get_dist_info
@@ -474,8 +473,8 @@ class GaussianDiffusion(nn.Module):
         assert data.dim() == 4
         return self.sample_from_noise(data, decoder=decoder, **kwargs)
 
-    def forward(self, data, return_loss=False, planes=None, density_bitfield=None, decoder=None, **kwargs):
+    def forward(self, data, return_loss=False, planes=None, decoder=None, **kwargs):
         if return_loss:
-            return self.forward_train(data, decoder=decoder, density_bitfield=density_bitfield, planes=planes, **kwargs)
+            return self.forward_train(data, decoder=decoder, planes=planes, **kwargs)
 
         return self.forward_test(data, decoder=decoder, **kwargs)
