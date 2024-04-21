@@ -298,6 +298,10 @@ class DenoisingUnetMod(DenoisingUnet):
         decoder_training_prev = decoder.training
         decoder.train(False)
 
+        print('!!!')
+        for param in decoder.features.parameters():
+            print(param.requires_grad)
+
         code = code.reshape(code.size(0), *(3, 6, 128, 128))
 
         dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
@@ -407,7 +411,7 @@ class DenoisingUnetMod(DenoisingUnet):
         image_multi = image_multi.reshape(num_scenes, 6, 3, h, w)
         image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
 
-        print('!!!')
+
         print(image_multi.requires_grad)
         image_multi.requires_grad = True
 
