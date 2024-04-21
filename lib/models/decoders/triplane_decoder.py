@@ -176,6 +176,7 @@ class TriPlaneDecoder(VolumeRenderer):
             rgbs = self.color_net(color_in)
             if self.sigmoid_saturation > 0:
                 rgbs = rgbs * (1 + self.sigmoid_saturation * 2) - self.sigmoid_saturation
+        print('!!!$$ ', rgbs.requires_grad)
         return sigmas, rgbs, num_points
 
     def point_density_decode(self, xyzs, code, **kwargs):
