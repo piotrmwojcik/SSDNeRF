@@ -91,13 +91,10 @@ class VolumeRenderer(nn.Module):
                     rays_o, rays_d, code, density_bitfield, nears, fars, grid_size, dt_gamma):
                 num_rays_per_scene = rays_o_single.size(0)
 
-                weights_sum_single = torch.zeros(num_rays_per_scene, dtype=dtype, device=device)
-                depth_single = torch.zeros(num_rays_per_scene, dtype=dtype, device=device)
-                image_single = torch.zeros(num_rays_per_scene, 3, dtype=dtype, device=device)
+                weights_sum_single = torch.zeros(num_rays_per_scene, dtype=dtype, requires_grad=True, device=device)
+                depth_single = torch.zeros(num_rays_per_scene, dtype=dtype, requires_grad=True, device=device)
+                image_single = torch.zeros(num_rays_per_scene, 3, dtype=dtype, requires_grad=True, device=device)
 
-                print('!!!')
-                print(image_single.requires_grad)
-                print(code_single.requires_grad)
 
                 num_rays_alive = num_rays_per_scene
                 rays_alive = torch.arange(num_rays_alive, dtype=torch.int32, device=device)  # (num_rays_alive,)
