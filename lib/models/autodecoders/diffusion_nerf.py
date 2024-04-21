@@ -275,8 +275,6 @@ class DiffusionNeRF(MultiSceneNeRF):
             code_out = diffusion(
                 self.code_diff_pr(noise), return_loss=False, decoder=decoder0,
                 show_pbar=show_pbar, **kwargs)
-            print('!!!!!!!!')
-            print(code_out.shape)
         code_list = code_out if isinstance(code_out, list) else [code_out]
         density_grid_list = []
         density_bitfield_list = []
