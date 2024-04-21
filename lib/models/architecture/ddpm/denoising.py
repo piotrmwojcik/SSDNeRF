@@ -220,9 +220,9 @@ class DenoisingUnetMod(DenoisingUnet):
 
             # full update.
             if iter_density < 16:
-                X = torch.arange(grid_size, dtype=torch.int32, device=device).split(S)
-                Y = torch.arange(grid_size, dtype=torch.int32, device=device).split(S)
-                Z = torch.arange(grid_size, dtype=torch.int32, device=device).split(S)
+                X = torch.arange(grid_size, dtype=torch.int32, requires_grad=True, device=device).split(S)
+                Y = torch.arange(grid_size, dtype=torch.int32, requires_grad=True, device=device).split(S)
+                Z = torch.arange(grid_size, dtype=torch.int32, requires_grad=True, device=device).split(S)
 
                 for xs in X:
                     for ys in Y:
