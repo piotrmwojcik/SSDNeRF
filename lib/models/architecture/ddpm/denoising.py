@@ -370,7 +370,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
         num_scenes = 8
 
-        with module_requires_grad(decoder, False), torch.enable_grad():
+        with module_requires_grad(decoder, True), torch.enable_grad():
             from lib.core.utils.multiplane_pos import pose_spherical
             import numpy as np
 
