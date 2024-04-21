@@ -350,7 +350,7 @@ class GaussianDiffusion(nn.Module):
             raise AttributeError('Unknown denoising var output type '
                                  f'[{self.denoising_var_mode}].')
 
-        x_0_pred, _ = self.pred_x_0(x_t, t, grad_guide_fn=grad_guide_fn, cfg=cfg, **kwargs)
+        x_0_pred, _ = self.pred_x_0(x_t, t, decoder=decoder, grad_guide_fn=grad_guide_fn, cfg=cfg, **kwargs)
         mean_pred = self.q_posterior_mean(x_0_pred, x_t, t)
 
         if noise is None:
