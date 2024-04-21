@@ -196,13 +196,15 @@ class DenoisingUnetMod(DenoisingUnet):
         self.init_weights(pretrained)
 
     def get_init_density_grid(self, num_scenes, device=None):
+        grid_size = 64
         return torch.zeros(
-            self.grid_size ** 3 if num_scenes is None else (num_scenes, 64 ** 3),
+            grid_size ** 3 if num_scenes is None else (num_scenes, 64 ** 3),
             device=device, dtype=torch.float16)
 
     def get_init_density_bitfield(self, num_scenes, device=None):
+        grid_size = 64
         return torch.zeros(
-            self.grid_size ** 3 // 8 if num_scenes is None else (num_scenes, 64 ** 3 // 8),
+            grid_size ** 3 // 8 if num_scenes is None else (num_scenes, 64 ** 3 // 8),
             device=device, dtype=torch.uint8)
 
     def update_extra_state(self, decoder, code, density_grid, density_bitfield,
