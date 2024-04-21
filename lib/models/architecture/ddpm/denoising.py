@@ -299,7 +299,7 @@ class DenoisingUnetMod(DenoisingUnet):
         decoder.train(False)
 
         print('!!!')
-        for param in decoder.features.parameters():
+        for param in decoder.parameters():
             print(param.requires_grad)
 
         code = code.reshape(code.size(0), *(3, 6, 128, 128))
