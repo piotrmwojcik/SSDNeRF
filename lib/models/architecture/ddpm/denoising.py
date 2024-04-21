@@ -394,7 +394,7 @@ class DenoisingUnetMod(DenoisingUnet):
             pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
             h, w = 128, 128
 
-            _, den_bitfield = self.get_density(decoder, outputs, cfg=dict())
+            _, den_bitfield = self.get_density(decoder, outputs.reshape(outputs.size(0), *(3, 6, 128, 128)), cfg=dict())
             image_multi, depth_multi = self.render(decoder, outputs, den_bitfield, h, w, intrinsics, pose_matrices,
                                                    cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
 
