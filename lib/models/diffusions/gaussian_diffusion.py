@@ -196,8 +196,6 @@ class GaussianDiffusion(nn.Module):
             grad_enabled_prev = torch.is_grad_enabled()
             torch.set_grad_enabled(True)
 
-        print('!!!!')
-        print(density_bitfield.shape)
         denoising_output = self.denoising(x_t, t, decoder=decoder, density_bitfield=density_bitfield, concat_cond=concat_cond)
 
         if self.denoising_mean_mode.upper() == 'EPS':
