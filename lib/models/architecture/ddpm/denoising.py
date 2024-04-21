@@ -368,10 +368,11 @@ class DenoisingUnetMod(DenoisingUnet):
         for block in self.out_blocks:
             h = block(torch.cat([h, hs.pop()], dim=1), embedding)
         outputs = self.out(h)
+        return outputs
 
         num_scenes = 8
 
-        with module_requires_grad(decoder, True):
+        with module_requires_grad(decoder, False):
             from lib.core.utils.multiplane_pos import pose_spherical
             import numpy as np
 
