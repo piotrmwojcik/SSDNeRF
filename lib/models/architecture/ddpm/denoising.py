@@ -360,7 +360,9 @@ class DenoisingUnetMod(DenoisingUnet):
         h = self.mid_blocks(h, embedding)
 
         for name, param in self.mid_blocks.named_parameters():
-            print(name, param)
+            if 'conv_2' in name:
+                print(name, param)
+                break
 
         # forward upsample blocks
         for block in self.out_blocks:
