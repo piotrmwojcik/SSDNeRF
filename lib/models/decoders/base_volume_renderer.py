@@ -97,7 +97,7 @@ class VolumeRenderer(nn.Module):
 
 
                 num_rays_alive = num_rays_per_scene
-                rays_alive = torch.arange(num_rays_alive, requires_grad=True, dtype=torch.int32, device=device)  # (num_rays_alive,)
+                rays_alive = torch.arange(num_rays_alive, dtype=torch.int32, device=device)  # (num_rays_alive,)
                 rays_t = nears_single.clone()  # (num_rays_alive,)
 
                 step = 0
