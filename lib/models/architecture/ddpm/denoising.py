@@ -236,7 +236,8 @@ class DenoisingUnetMod(DenoisingUnet):
         return out_image, out_depth
 
     def forward(self, x_t, t, label=None, decoder=None, density_bitfield=None, concat_cond=None, return_noise=False):
-        tm = t
+        print('!!!')
+        print(x_t.shape)
         if self.use_rescale_timesteps:
             t = t.float() * (1000.0 / self.num_timesteps)
         embedding = self.time_embedding(t)
