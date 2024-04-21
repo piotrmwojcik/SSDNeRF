@@ -360,9 +360,9 @@ class DenoisingUnetMod(DenoisingUnet):
         h = self.mid_blocks(h, embedding)
 
         for name, param in self.mid_blocks.named_parameters():
-            if 'conv_2' in name:
-                print(name, param)
-                break
+           if 'conv_2' in name:
+               print(name, param)
+               break
 
         # forward upsample blocks
         for block in self.out_blocks:
@@ -371,7 +371,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
         num_scenes = 8
 
-        with module_requires_grad(decoder, False), torch.enable_grad():
+        with module_requires_grad(decoder, True):
             from lib.core.utils.multiplane_pos import pose_spherical
             import numpy as np
 
