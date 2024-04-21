@@ -271,7 +271,6 @@ class DiffusionNeRF(MultiSceneNeRF):
                 device_type='cuda',
                 enabled=self.autocast_dtype is not None,
                 dtype=getattr(torch, self.autocast_dtype) if self.autocast_dtype is not None else None):
-            print('222aa')
 
             code_out = diffusion(
                 self.code_diff_pr(noise), return_loss=False, decoder=decoder0,

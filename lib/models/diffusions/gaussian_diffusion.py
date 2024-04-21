@@ -267,6 +267,7 @@ class GaussianDiffusion(nn.Module):
                       t,
                       t_prev,
                       noise=None,
+                      decoder=None,
                       cfg=dict(),
                       grad_guide_fn=None,
                       **kwargs):
@@ -276,7 +277,7 @@ class GaussianDiffusion(nn.Module):
         alpha_bar_t_prev = self.alphas_bar[t_prev] if t_prev >= 0 else self.alphas_bar_prev[0]
         tilde_beta_t = self.tilde_betas_t[t]
 
-        x_0_pred, _ = self.pred_x_0(x_t, t, grad_guide_fn=grad_guide_fn, cfg=cfg, **kwargs)
+        x_0_pred, _ = self.pred_x_0(x_t, t, decoder=decoder, grad_guide_fn=grad_guide_fn, cfg=cfg, **kwargs)
         eps_t_pred = (x_t - self.sqrt_alphas_bar[t] * x_0_pred) / self.sqrt_one_minus_alphas_bar[t]
         pred_sample_direction = np.sqrt(1 - alpha_bar_t_prev - tilde_beta_t * (eta ** 2)) * eps_t_pred
         x_prev = np.sqrt(alpha_bar_t_prev) * x_0_pred + pred_sample_direction
