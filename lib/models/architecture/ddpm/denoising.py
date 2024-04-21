@@ -199,13 +199,13 @@ class DenoisingUnetMod(DenoisingUnet):
         grid_size = 64
         return torch.zeros(
             grid_size ** 3 if num_scenes is None else (num_scenes, 64 ** 3),
-            device=device, dtype=torch.float16)
+            device=device, requires_grad=True, dtype=torch.float16)
 
     def get_init_density_bitfield(self, num_scenes, device=None):
         grid_size = 64
         return torch.zeros(
             grid_size ** 3 // 8 if num_scenes is None else (num_scenes, 64 ** 3 // 8),
-            device=device, dtype=torch.uint8)
+            device=device, requires_grad=True, dtype=torch.uint8)
 
     def update_extra_state(self, decoder, code, density_grid, density_bitfield,
                            iter_density, density_thresh=0.01, decay=0.9, S=128):
