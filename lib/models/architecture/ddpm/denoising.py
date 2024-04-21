@@ -368,7 +368,6 @@ class DenoisingUnetMod(DenoisingUnet):
         for block in self.out_blocks:
             h = block(torch.cat([h, hs.pop()], dim=1), embedding)
         outputs = self.out(h)
-        return outputs
 
         num_scenes = 8
 
