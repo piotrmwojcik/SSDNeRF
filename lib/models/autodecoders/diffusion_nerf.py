@@ -170,7 +170,7 @@ class DiffusionNeRF(MultiSceneNeRF):
                 enabled=self.autocast_dtype is not None,
                 dtype=getattr(torch, self.autocast_dtype) if self.autocast_dtype is not None else None):
             loss_diffusion, log_vars = diffusion(
-                self.code_diff_pr(code), decoder=decoder, planes=can_planes, density_bitfield=density_bitfield, concat_cond=concat_cond, return_loss=True,
+                self.code_diff_pr(code), decoder=decoder, planes=can_planes, concat_cond=concat_cond, return_loss=True,
                 x_t_detach=x_t_detach, cfg=self.train_cfg)
         loss_diffusion.backward()
         for key in optimizer.keys():
