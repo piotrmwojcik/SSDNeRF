@@ -165,6 +165,12 @@ class DiffusionNeRF(MultiSceneNeRF):
             #    with open('/data/pwojcik/diff_input3.pkl', 'wb') as handle:
             #        pickle.dump(diff_input, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+        def weights_changed(model_before, model_after):
+            for param_before, param_after in zip(model_before.parameters(), model_after.parameters()):
+                if torch.any(param_before.data != param_after.data):
+                    return True
+            return False
+
         with torch.autocast(
                 device_type='cuda',
                 enabled=self.autocast_dtype is not None,
@@ -172,10 +178,13 @@ class DiffusionNeRF(MultiSceneNeRF):
             loss_diffusion, log_vars = diffusion(
                 self.code_diff_pr(code), decoder=decoder, planes=can_planes, concat_cond=concat_cond, return_loss=True,
                 x_t_detach=x_t_detach, cfg=self.train_cfg)
+        m0 = diffusion.denoising.clone()
         loss_diffusion.backward()
         for key in optimizer.keys():
             if key.startswith('diffusion'):
                 optimizer[key].step()
+        print('!!!')
+        print(weights_changed(m0, diffusion.denoising))
 
         if extra_scene_step > 0:
             assert len(code_optimizers) > 0
