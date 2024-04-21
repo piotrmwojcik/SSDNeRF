@@ -11,7 +11,8 @@ from mmgen.models.architectures.common import get_module_device
 
 from torch.nn.parallel.distributed import DistributedDataParallel
 
-from lib import get_cam_rays, module_requires_grad, custom_meshgrid, morton3D, morton3D_invert, packbits
+from lib.ops import morton3D, morton3D_invert, packbits
+from lib import get_cam_rays, module_requires_grad, custom_meshgrid
 from lib.core.utils.multiplane_pos import REGULAR_POSES
 
 
