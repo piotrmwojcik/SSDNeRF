@@ -395,6 +395,8 @@ class DenoisingUnetMod(DenoisingUnet):
             h, w = 128, 128
 
             _, den_bitfield = self.get_density(decoder, outputs.reshape(outputs.size(0), *(3, 6, 128, 128)), cfg=dict())
+            print('!!!')
+            print(outputs.requires_grad)
             image_multi, depth_multi = self.render(decoder, outputs, den_bitfield, h, w, intrinsics, pose_matrices,
                                                    cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
 
