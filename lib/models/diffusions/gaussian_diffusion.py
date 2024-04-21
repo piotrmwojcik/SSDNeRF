@@ -293,7 +293,7 @@ class GaussianDiffusion(nn.Module):
 
         return x_prev, x_0_pred
 
-    def ddim_sample(self, noise, show_pbar=False, concat_cond=None,
+    def ddim_sample(self, noise, show_pbar=False, decoder=None, concat_cond=None,
                     save_intermediates=False, **kwargs):
         device = get_module_device(self)
         x_t = noise
@@ -314,7 +314,7 @@ class GaussianDiffusion(nn.Module):
                 t_prev = -1
             x_t, x_0_pred = self.p_sample_ddim(
                 x_t, t, t_prev, concat_cond=concat_cond[:, cond_step % concat_cond.size(1)] if concat_cond is not None else None,
-                cfg=self.test_cfg, **kwargs)
+                decoder=None, cfg=self.test_cfg, **kwargs)
             cond_step += 1
             if langevin_steps > 0 and langevin_t_range[0] < t_prev < langevin_t_range[1]:
                 for _ in range(langevin_steps):
@@ -334,6 +334,7 @@ class GaussianDiffusion(nn.Module):
     def p_sample_ddpm(self,
                       x_t,
                       t,
+                      decoder=None,
                       noise=None,
                       cfg=dict(),
                       grad_guide_fn=None,
@@ -365,7 +366,7 @@ class GaussianDiffusion(nn.Module):
 
         return x_prev, x_0_pred
 
-    def ddpm_sample(self, noise, show_pbar=False, concat_cond=None, **kwargs):
+    def ddpm_sample(self, noise, decoder=None, show_pbar=False, concat_cond=None, **kwargs):
         device = get_module_device(self)
         x_t = noise
         num_timesteps = self.test_cfg.get('num_timesteps', self.num_timesteps)
@@ -388,6 +389,7 @@ class GaussianDiffusion(nn.Module):
 
     def sample_from_noise(self,
                           noise,
+                          decoder=None,
                           **kwargs):
         # get sample function by name
         sample_fn_name = f'{self.sample_method.lower()}_sample'
@@ -399,6 +401,7 @@ class GaussianDiffusion(nn.Module):
 
         outputs = sample_fn(
             noise=noise,
+            decoder=decoder,
             **kwargs)
         return outputs
 
@@ -460,7 +463,7 @@ class GaussianDiffusion(nn.Module):
 
         return loss, log_vars
 
-    def forward_test(self, data, **kwargs):
+    def forward_test(self, data, decoder=None, **kwargs):
         """Testing function for Diffusion Denosing Probability Models.
 
         Args:
@@ -468,10 +471,10 @@ class GaussianDiffusion(nn.Module):
                 passed to different methods.
         """
         assert data.dim() == 4
-        return self.sample_from_noise(data, **kwargs)
+        return self.sample_from_noise(data, decoder=decoder, **kwargs)
 
     def forward(self, data, return_loss=False, planes=None, density_bitfield=None, decoder=None, **kwargs):
         if return_loss:
             return self.forward_train(data, decoder=decoder, density_bitfield=density_bitfield, planes=planes, **kwargs)
 
-        return self.forward_test(data, **kwargs)
+        return self.forward_test(data, decoder=decoder, **kwargs)
