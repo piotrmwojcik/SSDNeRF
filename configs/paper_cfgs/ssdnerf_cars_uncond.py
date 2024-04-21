@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_cars_uncond'
+name = 'ssdnerf_cars_uncond_dupa'
 
 DATA_PATH = '/data/pwojcik/SSDNeRF/data/shapenet'
 
