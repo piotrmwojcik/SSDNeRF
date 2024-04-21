@@ -319,6 +319,7 @@ class DenoisingUnetMod(DenoisingUnet):
         out_image = []
         out_depth = []
         bg_color = 1
+        print('!!!$$ ', code.requires_grad)
         for rays_o_single, rays_d_single in zip(rays_o, rays_d):
             outputs = decoder(
                 rays_o_single, rays_d_single,
