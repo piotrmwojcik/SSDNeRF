@@ -234,7 +234,7 @@ class DenoisingUnetMod(DenoisingUnet):
                             indices = morton3D(coords).long()  # [N]
                             xyzs = (coords.float() - (grid_size - 1) / 2) * (2 * decoder.bound / grid_size)
                             # add noise
-                            half_voxel_width = decoder.bound / self.grid_size
+                            half_voxel_width = decoder.bound / grid_size
                             xyzs += torch.rand_like(xyzs) * (2 * half_voxel_width) - half_voxel_width
                             # query density
                             sigmas = decoder.point_density_decode(
