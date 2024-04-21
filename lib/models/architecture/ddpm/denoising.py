@@ -325,7 +325,7 @@ class DenoisingUnetMod(DenoisingUnet):
                 code, density_bitfield, 64,
                 dt_gamma=dt_gamma, perturb=False)
             print('!!!')
-            print(outputs[0]['image'].requires_grad)
+            print(outputs['image'][0].requires_grad)
             print()
 
             weights = torch.stack(outputs['weights_sum'], dim=0) if num_scenes > 1 else outputs['weights_sum'][0]
