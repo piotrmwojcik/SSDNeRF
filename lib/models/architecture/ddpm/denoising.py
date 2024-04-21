@@ -399,9 +399,8 @@ class DenoisingUnetMod(DenoisingUnet):
 
             _, den_bitfield = self.get_density(decoder, outputs.reshape(outputs.size(0), *(3, 6, 128, 128)), cfg=dict())
             image_multi, depth_multi = self.render(decoder, outputs, den_bitfield, h, w, intrinsics, pose_matrices, cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
-            print('!!!')
-            print(image_multi.requires_grad)
-
+            print('!!!! ', image_multi.requires_grad)
+            print()
 
             def clamp_image(img, num_images):
                 images = img.permute(0, 1, 4, 2, 3).reshape(
