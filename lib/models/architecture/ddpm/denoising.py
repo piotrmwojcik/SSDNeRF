@@ -197,16 +197,18 @@ class DenoisingUnetMod(DenoisingUnet):
 
     def get_init_density_grid(self, num_scenes, device=None):
         return torch.zeros(
-            self.grid_size ** 3 if num_scenes is None else (num_scenes, self.grid_size ** 3),
+            self.grid_size ** 3 if num_scenes is None else (num_scenes, 64 ** 3),
             device=device, dtype=torch.float16)
 
     def get_init_density_bitfield(self, num_scenes, device=None):
         return torch.zeros(
-            self.grid_size ** 3 // 8 if num_scenes is None else (num_scenes, self.grid_size ** 3 // 8),
+            self.grid_size ** 3 // 8 if num_scenes is None else (num_scenes, 64 ** 3 // 8),
             device=device, dtype=torch.uint8)
 
     def update_extra_state(self, decoder, code, density_grid, density_bitfield,
                            iter_density, density_thresh=0.01, decay=0.9, S=128):
+        grid_size = 64
+
         with torch.no_grad():
             device = get_module_device(self)
             num_scenes = density_grid.size(0)
@@ -216,9 +218,9 @@ class DenoisingUnetMod(DenoisingUnet):
 
             # full update.
             if iter_density < 16:
-                X = torch.arange(self.grid_size, dtype=torch.int32, device=device).split(S)
-                Y = torch.arange(self.grid_size, dtype=torch.int32, device=device).split(S)
-                Z = torch.arange(self.grid_size, dtype=torch.int32, device=device).split(S)
+                X = torch.arange(grid_size, dtype=torch.int32, device=device).split(S)
+                Y = torch.arange(grid_size, dtype=torch.int32, device=device).split(S)
+                Z = torch.arange(grid_size, dtype=torch.int32, device=device).split(S)
 
                 for xs in X:
                     for ys in Y:
@@ -228,7 +230,7 @@ class DenoisingUnetMod(DenoisingUnet):
                             coords = torch.cat([xx.reshape(-1, 1), yy.reshape(-1, 1), zz.reshape(-1, 1)],
                                                dim=-1)  # [N, 3], in [0, 128)
                             indices = morton3D(coords).long()  # [N]
-                            xyzs = (coords.float() - (self.grid_size - 1) / 2) * (2 * decoder.bound / self.grid_size)
+                            xyzs = (coords.float() - (grid_size - 1) / 2) * (2 * decoder.bound / grid_size)
                             # add noise
                             half_voxel_width = decoder.bound / self.grid_size
                             xyzs += torch.rand_like(xyzs) * (2 * half_voxel_width) - half_voxel_width
@@ -241,9 +243,9 @@ class DenoisingUnetMod(DenoisingUnet):
 
             # partial update (half the computation)
             else:
-                N = self.grid_size ** 3 // 4  # H * H * H / 4
+                N = grid_size ** 3 // 4  # H * H * H / 4
                 # random sample some positions
-                coords = torch.randint(0, self.grid_size, (N, 3), device=device)  # [N, 3], in [0, 128)
+                coords = torch.randint(0, grid_size, (N, 3), device=device)  # [N, 3], in [0, 128)
                 indices = morton3D(coords).long()  # [N]
                 # random sample occupied positions
                 occ_indices_all = []
@@ -257,8 +259,8 @@ class DenoisingUnetMod(DenoisingUnet):
                 indices = torch.cat([indices[None].expand(num_scenes, N), occ_indices_all], dim=0)
                 coords = torch.cat([coords[None].expand(num_scenes, N, 3), occ_coords_all], dim=0)
                 # same below
-                xyzs = (coords.float() - (self.grid_size - 1) / 2) * (2 * decoder.bound / self.grid_size)
-                half_voxel_width = decoder.bound / self.grid_size
+                xyzs = (coords.float() - (grid_size - 1) / 2) * (2 * decoder.bound / grid_size)
+                half_voxel_width = decoder.bound / grid_size
                 xyzs += torch.rand_like(xyzs) * (2 * half_voxel_width) - half_voxel_width
                 sigmas = decoder.point_density_decode(xyzs, code)[0].reshape(num_scenes, -1)  # (num_scenes, N + N)
                 # assign
@@ -279,7 +281,7 @@ class DenoisingUnetMod(DenoisingUnet):
         return
 
     def get_density(self, decoder, code, cfg=dict()):
-        density_thresh = cfg.get('density_thresh', 0.01)
+        density_thresh = cfg.get('density_thresh', 0.1)
         density_step = cfg.get('density_step', 8)
         num_scenes = code.size(0)
         device = code.device
@@ -390,10 +392,8 @@ class DenoisingUnetMod(DenoisingUnet):
             pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
             h, w = 128, 128
 
-            print('!!!')
-            print(density_bitfield.shape)
-
-            image_multi, depth_multi = self.render(decoder, outputs, density_bitfield, h, w, intrinsics, pose_matrices,
+            _, den_bitfield = self.get_density(decoder, outputs, cfg=self.test_cfg)
+            image_multi, depth_multi = self.render(decoder, outputs, den_bitfield, h, w, intrinsics, pose_matrices,
                                                    cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
 
             def clamp_image(img, num_images):
