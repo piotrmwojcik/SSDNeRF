@@ -95,6 +95,9 @@ class VolumeRenderer(nn.Module):
                 depth_single = torch.zeros(num_rays_per_scene, dtype=dtype, device=device)
                 image_single = torch.zeros(num_rays_per_scene, 3, dtype=dtype, device=device)
 
+                print('!!!')
+                print(image_single.requires_grad)
+
                 num_rays_alive = num_rays_per_scene
                 rays_alive = torch.arange(num_rays_alive, dtype=torch.int32, device=device)  # (num_rays_alive,)
                 rays_t = nears_single.clone()  # (num_rays_alive,)
