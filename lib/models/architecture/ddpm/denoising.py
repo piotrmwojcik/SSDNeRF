@@ -298,11 +298,6 @@ class DenoisingUnetMod(DenoisingUnet):
         decoder_training_prev = decoder.training
         decoder.train(False)
 
-        print('!!!')
-        for param in decoder.parameters():
-            print(param.requires_grad)
-        print()
-
         code = code.reshape(code.size(0), *(3, 6, 128, 128))
 
         dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
@@ -329,6 +324,10 @@ class DenoisingUnetMod(DenoisingUnet):
                 rays_o_single, rays_d_single,
                 code, density_bitfield, 64,
                 dt_gamma=dt_gamma, perturb=False)
+            print('!!!')
+            print(outputs['image'].requires_grad)
+            print()
+
             weights = torch.stack(outputs['weights_sum'], dim=0) if num_scenes > 1 else outputs['weights_sum'][0]
             rgbs = (torch.stack(outputs['image'], dim=0) if num_scenes > 1 else outputs['image'][0]) \
                    + bg_color * (1 - weights.unsqueeze(-1))
