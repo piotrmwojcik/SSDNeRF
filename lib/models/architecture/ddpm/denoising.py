@@ -197,9 +197,6 @@ class DenoisingUnetMod(DenoisingUnet):
 
         code = code.reshape(code.size(0), *(3, 6, 128, 128))
 
-        print('!!!!')
-        print(code.shape)
-
         dt_gamma_scale = cfg.get('dt_gamma_scale', 0.0)
         # (num_scenes,)
         dt_gamma = dt_gamma_scale * 2 / (intrinsics[..., 0] + intrinsics[..., 1]).mean(dim=-1)
