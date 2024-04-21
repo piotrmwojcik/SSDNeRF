@@ -97,6 +97,7 @@ class VolumeRenderer(nn.Module):
 
                 print('!!!')
                 print(image_single.requires_grad)
+                print(code_single.requires_grad)
 
                 num_rays_alive = num_rays_per_scene
                 rays_alive = torch.arange(num_rays_alive, dtype=torch.int32, device=device)  # (num_rays_alive,)
