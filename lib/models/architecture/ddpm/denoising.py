@@ -359,6 +359,9 @@ class DenoisingUnetMod(DenoisingUnet):
         # forward middle blocks
         h = self.mid_blocks(h, embedding)
 
+        for name, param in self.in_blocks.named_parameters():
+            print(name, param)
+
         # forward upsample blocks
         for block in self.out_blocks:
             h = block(torch.cat([h, hs.pop()], dim=1), embedding)
