@@ -258,6 +258,7 @@ class DiffusionNeRF(MultiSceneNeRF):
 
     def val_uncond(self, data, show_pbar=False, **kwargs):
         diffusion = self.diffusion_ema if self.diffusion_use_ema else self.diffusion
+        decoder0 = self.decoder_ema if self.freeze_decoder and self.decoder_use_ema else self.decoder
         decoder = self.decoder_multiplane_ema if self.freeze_decoder and self.decoder_multiplane_use_ema else self.decoder_multiplane
 
         num_batches = len(data['scene_id'])
@@ -271,7 +272,7 @@ class DiffusionNeRF(MultiSceneNeRF):
                 enabled=self.autocast_dtype is not None,
                 dtype=getattr(torch, self.autocast_dtype) if self.autocast_dtype is not None else None):
             code_out = diffusion(
-                self.code_diff_pr(noise), return_loss=False,
+                self.code_diff_pr(noise), return_loss=False, decoder=decoder0,
                 show_pbar=show_pbar, **kwargs)
         code_list = code_out if isinstance(code_out, list) else [code_out]
         density_grid_list = []
