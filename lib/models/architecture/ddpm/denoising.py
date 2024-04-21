@@ -365,52 +365,49 @@ class DenoisingUnetMod(DenoisingUnet):
 
         num_scenes = 8
 
-        with module_requires_grad(decoder, False), torch.enable_grad():
-            from lib.core.utils.multiplane_pos import pose_spherical
-            import numpy as np
+        from lib.core.utils.multiplane_pos import pose_spherical
+        import numpy as np
 
-            poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
-            poses = np.stack(poses)
-            pose_matrices = []
+        poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+        poses = np.stack(poses)
+        pose_matrices = []
 
-            device = 'cuda'
+        device = 'cuda'
 
-            fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
-            intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
+        fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
+        intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
 
-            for i in range(poses.shape[0]):
-                M = poses[i]
-                M = torch.from_numpy(M)
-                M = M @ torch.Tensor([[-1, 0, 0, 0],
-                                      [0, 1, 0, 0],
-                                      [0, 0, 1, 0],
-                                      [0, 0, 0, 1]]).to(M.device)
+        for i in range(poses.shape[0]):
+            M = poses[i]
+            M = torch.from_numpy(M)
+            M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                  [0, 1, 0, 0],
+                                  [0, 0, 1, 0],
+                                  [0, 0, 0, 1]]).to(M.device)
 
-                M = torch.cat(
-                    [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
-                # M = torch.inverse(M)
-                pose_matrices.append(M)
+            M = torch.cat(
+                [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
+            # M = torch.inverse(M)
+            pose_matrices.append(M)
 
-            pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
-            h, w = 128, 128
+        pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
+        h, w = 128, 128
 
-            _, den_bitfield = self.get_density(decoder, outputs.reshape(outputs.size(0), *(3, 6, 128, 128)), cfg=dict())
-            image_multi, depth_multi = self.render(decoder, outputs, den_bitfield, h, w, intrinsics, pose_matrices,
-                                                   cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
+        _, den_bitfield = self.get_density(decoder, outputs.reshape(outputs.size(0), *(3, 6, 128, 128)), cfg=dict())
+        image_multi, depth_multi = self.render(decoder, outputs, den_bitfield, h, w, intrinsics, pose_matrices,
+                                               cfg=dict())  # (num_scenes, num_imgs, h, w, 3)
 
-            def clamp_image(img, num_images):
-                images = img.permute(0, 1, 4, 2, 3).reshape(
-                    num_scenes * num_images, 3, h, w)  # .clamp(min=0, max=1)
-                return images
-                # return torch.round(images * 255) / 255
+        def clamp_image(img, num_images):
+            images = img.permute(0, 1, 4, 2, 3).reshape(
+                num_scenes * num_images, 3, h, w)  # .clamp(min=0, max=1)
+            return images
+            # return torch.round(images * 255) / 255
 
-            image_multi = clamp_image(image_multi, poses.shape[0])
-            image_multi = image_multi.reshape(num_scenes, 6, 3, h, w)
-            image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
+        image_multi = clamp_image(image_multi, poses.shape[0])
+        image_multi = image_multi.reshape(num_scenes, 6, 3, h, w)
+        image_multi = image_multi.reshape(num_scenes, 3, 6, h, w)
 
             #image_multi.grad = outputs.grad.clone()
         image_multi.requires_grad = True
-        image_multi.zero_grad()
-
 
         return image_multi
