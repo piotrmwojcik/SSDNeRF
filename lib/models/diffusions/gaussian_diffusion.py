@@ -314,7 +314,7 @@ class GaussianDiffusion(nn.Module):
                 t_prev = -1
             x_t, x_0_pred = self.p_sample_ddim(
                 x_t, t, t_prev, concat_cond=concat_cond[:, cond_step % concat_cond.size(1)] if concat_cond is not None else None,
-                decoder=None, cfg=self.test_cfg, **kwargs)
+                decoder=decoder, cfg=self.test_cfg, **kwargs)
             cond_step += 1
             if langevin_steps > 0 and langevin_t_range[0] < t_prev < langevin_t_range[1]:
                 for _ in range(langevin_steps):
