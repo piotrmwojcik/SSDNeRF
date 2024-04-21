@@ -410,6 +410,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
             #image_multi.grad = outputs.grad.clone()
         image_multi.requires_grad = True
+        image_multi.zero_grad()
 
 
         return image_multi
