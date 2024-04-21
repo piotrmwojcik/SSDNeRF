@@ -295,8 +295,8 @@ class DenoisingUnetMod(DenoisingUnet):
         return density_grid, density_bitfield
 
     def render(self, decoder, code, density_bitfield, h, w, intrinsics, poses, cfg=dict()):
-        decoder_training_prev = decoder.training
-        decoder.train(False)
+        #decoder_training_prev = decoder.training
+        #decoder.train(False)
 
         code = code.reshape(code.size(0), *(3, 6, 128, 128))
 
@@ -335,7 +335,7 @@ class DenoisingUnetMod(DenoisingUnet):
         out_image = out_image.reshape(num_scenes, num_imgs, h, w, 3)
         out_depth = out_depth.reshape(num_scenes, num_imgs, h, w)
 
-        decoder.train(decoder_training_prev)
+        #decoder.train(decoder_training_prev)
         return out_image, out_depth
 
     def forward(self, x_t, t, label=None, decoder=None, concat_cond=None, return_noise=False):
@@ -368,7 +368,7 @@ class DenoisingUnetMod(DenoisingUnet):
 
         num_scenes = 8
 
-        with module_requires_grad(decoder, True), torch.enable_grad():
+        with module_requires_grad(decoder, False), torch.enable_grad():
             from lib.core.utils.multiplane_pos import pose_spherical
             import numpy as np
 
