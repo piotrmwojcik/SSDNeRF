@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond'
+name = 'ssdnerf_mplane_cars_uncond_regular'
 
 DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
 

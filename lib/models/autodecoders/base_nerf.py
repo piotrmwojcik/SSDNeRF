@@ -18,7 +18,8 @@ from mmgen.models.architectures.common import get_module_device
 from ...core import custom_meshgrid, eval_psnr, eval_ssim_skimage, reduce_mean, rgetattr, rsetattr, extract_geometry, \
     module_requires_grad, get_cam_rays
 from lib.ops import morton3D, morton3D_invert, packbits
-from ...core.utils.multiplane_pos import pose_spherical, fibonacci_sphere
+#from ...core.utils.multiplane_pos import pose_spherical, fibonacci_sphere
+from ...core.utils.multiplane_pos import REGULAR_POSES, pose_spherical
 
 LPIPS_BS = 32
 
@@ -547,9 +548,10 @@ class BaseNeRF(nn.Module):
         else:
             test_imgs = test_img_paths = target_imgs = None
             h, w = cfg['img_size']
-        #poses = [pose_spherical(theta, phi, -1.3) for phi, theta in fibonacci_sphere(6)]
-        #poses = np.stack(poses)
-        #pose_matrices = []
+        # poses = [pose_spherical(theta, phi, -1.3) for phi, theta in fibonacci_sphere(6)]
+        poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+        poses = np.stack(poses)
+        pose_matrices = []
 
         device = 'cuda'
 
