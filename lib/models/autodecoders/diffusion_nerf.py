@@ -128,7 +128,7 @@ class DiffusionNeRF(MultiSceneNeRF):
             prior_grad = [code_.grad.data.clone() for code_ in code_list_]
             cfg = self.train_cfg.copy()
             cfg['n_inverse_steps'] = extra_scene_step
-            code, _, _, loss_decoder, loss_nerf, loss_consistency, loss_nerf_dict, loss_consistency_dict, out_rgbs, target_rgbs = self.inverse_code(
+            code, _, _, loss_decoder, loss_nerf, loss_nerf_dict, out_rgbs, target_rgbs = self.inverse_code(
                 decoder, cond_imgs, cond_rays_o, cond_rays_d, dt_gamma=dt_gamma, cfg=cfg,
                 code_=code_list_,
                 density_grid=density_grid,
@@ -137,8 +137,8 @@ class DiffusionNeRF(MultiSceneNeRF):
                 prior_grad=prior_grad)
             for k, v in loss_nerf_dict.items():
                 log_vars.update({k: float(v)})
-            for k, v in loss_consistency_dict.items():
-                log_vars.update({f"{k}_consistency": float(v)})
+            # for k, v in loss_consistency_dict.items():
+            #     log_vars.update({f"{k}_consistency": float(v)})
 
         else:
             prior_grad = None

@@ -86,9 +86,8 @@ def train_model(model,
 
     beta = torch.tensor(0.0, requires_grad=False)
     cws_optimizer= torch.optim.SGD([beta], lr=1.0)
-    consistency_weight_scheduler = create_consistency_weight_scheduler(cws_optimizer, 0, 150000,
-                                                                       starting_iter=starting_iter)
-    model.consistency_weight_scheduler = consistency_weight_scheduler
+    # consistency_weight_scheduler = create_consistency_weight_scheduler(cws_optimizer, 0, 150000, starting_iter=starting_iter)
+    # model.consistency_weight_scheduler = consistency_weight_scheduler
 
 
     # build optimizer
