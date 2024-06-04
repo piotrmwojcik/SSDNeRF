@@ -268,8 +268,6 @@ class MultiPlaneDecoder(VolumeRenderer):
                     num_points_per_scene, -1)
                 num_points.append(num_points_per_scene)
                 point_code.append(point_code_single)
-            point_code = torch.cat(point_code, dim=0) if len(point_code) > 1 \
-                else point_code[0]
 
         for code_single, xyzs_single in zip(code_m, xyzs):
             num_points_per_scene = xyzs_single.size(-2)
@@ -289,7 +287,7 @@ class MultiPlaneDecoder(VolumeRenderer):
 
             image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
                                       poses=np.stack(poses),
-                                      images=code_single.view(5, 3, code_m.shape[-2], code_m.shape[-1]))
+                                      images=code_single.reshape(5, 3, code_m.shape[-2], code_m.shape[-1]))
 
             image_planes.append(image_plane)
             point_code_single = image_plane(xyzs_single)
