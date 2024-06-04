@@ -103,7 +103,7 @@ class ImagePlanes(torch.nn.Module):
 
 
 @MODULES.register_module()
-class TriPlaneDecoder(VolumeRenderer):
+class MultiPlaneDecoder(VolumeRenderer):
 
     activation_dict = {
         'relu': nn.ReLU,

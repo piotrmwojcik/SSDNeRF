@@ -1,3 +1,3 @@
-from .triplane_decoder import TriPlaneDecoder
+from .triplane_decoder import MultiPlaneDecoder
 
-__all__ = ['TriPlaneDecoder']
+__all__ = ['MultiPlaneDecoder']
