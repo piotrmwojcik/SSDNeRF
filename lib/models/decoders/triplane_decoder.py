@@ -213,8 +213,6 @@ class MultiPlaneDecoder(VolumeRenderer):
             dirs: Shape (num_scenes, (num_points_per_scene, 3))
             code: Shape (num_scenes, 3, n_channels, h, w)
         """
-        print('!!!')
-        print(code.size())
 
         num_scenes, _, n_channels, h, w = code.size()
         if self.code_dropout is not None:
@@ -226,6 +224,8 @@ class MultiPlaneDecoder(VolumeRenderer):
         if self.scene_base is not None:
             code = code + self.scene_base
 
+        print('!!!')
+        print(isinstance(xyzs, torch.Tensor))
 
         # if isinstance(xyzs, torch.Tensor):
         #     assert xyzs.dim() == 3
@@ -266,18 +266,8 @@ class MultiPlaneDecoder(VolumeRenderer):
             image_planes.append(image_plane)
             point_code_single = image_plane(xyzs_single)
 
-
-            # print('!!!!--!!!!')
-            # print(point_code_single.permute(2, 1, 0).shape)
-            # # point_code_single = point_code_single.permute(2, 1, 0).reshape(
-            # #     num_points_per_scene, -1)
-            # print('!!!!')
-            # print(point_code_single.shape)
-            # print(xyzs[0].shape)
-            # print(dirs[0].shape)
             num_points.append(num_points_per_scene)
             point_code.append(point_code_single)
-
 
         point_code = torch.cat(point_code, dim=0) if len(point_code) > 1 \
             else point_code[0]
