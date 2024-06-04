@@ -252,7 +252,7 @@ class MultiPlaneDecoder(VolumeRenderer):
                 self.xyz_transform(xyzs),
                 mode=self.interp_mode, padding_mode='border', align_corners=False
             ).reshape(num_scenes, 3, -1, num_points)
-            point_code = point_code.permute(0, 3, 2, 1).reshape(
+            point_code_3p = point_code.permute(0, 3, 2, 1).reshape(
                 num_scenes * num_points, -1)
             num_points = [num_points] * num_scenes
         else:
@@ -268,12 +268,10 @@ class MultiPlaneDecoder(VolumeRenderer):
                     num_points_per_scene, -1)
                 num_points.append(num_points_per_scene)
                 point_code.append(point_code_single)
-            point_code = torch.cat(point_code, dim=0) if len(point_code) > 1 \
+            point_code_3p = torch.cat(point_code, dim=0) if len(point_code) > 1 \
                 else point_code[0]
 
-        print('!!!')
-        print(point_code.shape)
-
+        point_code = []
         for code_single, xyzs_single in zip(code_m, xyzs):
             num_points_per_scene = xyzs_single.size(-2)
             # (3, code_chn, num_points_per_scene)
@@ -296,6 +294,7 @@ class MultiPlaneDecoder(VolumeRenderer):
             num_points.append(num_points_per_scene)
             point_code.append(point_code_single)
 
+        point_code.append(point_code_3p)
         point_code = torch.cat(point_code, dim=0) if len(point_code) > 1 \
             else point_code[0]
 
