@@ -225,6 +225,7 @@ class MultiPlaneDecoder(VolumeRenderer):
             code = code + self.scene_base
 
         print('!!!')
+        print(self.scene_base)
         print(isinstance(xyzs, torch.Tensor))
 
         # if isinstance(xyzs, torch.Tensor):
