@@ -297,10 +297,7 @@ class MultiPlaneDecoder(VolumeRenderer):
         point_code = torch.cat(point_code, dim=0) if len(point_code) > 1 \
             else point_code[0]
 
-        print('!!!')
-        print(point_code.shape)
-        print(point_code_3p.shape)
-
+        point_code = torch.cat([point_code, point_code_3p], dim=1)
         base_x = self.base_net(point_code)
         base_x_act = self.base_activation(base_x)
         sigmas = self.density_net(base_x_act).squeeze(-1)
