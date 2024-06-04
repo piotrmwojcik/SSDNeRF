@@ -555,29 +555,29 @@ class BaseNeRF(nn.Module):
 
         device = 'cuda'
 
-        # fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
-        # intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
-        # #print(test_intrinsics)
-        #
-        # for i in range(poses.shape[0]):
-        #     M = poses[i]
-        #     M = torch.from_numpy(M)
-        #     M = M @ torch.Tensor([[-1, 0, 0, 0],
-        #                           [0, 1, 0, 0],
-        #                           [0, 0, 1, 0],
-        #                           [0, 0, 0, 1]]).to(M.device)
-        #
-        #     M = torch.cat(
-        #         [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
-        #     # M = torch.inverse(M)
-        #     pose_matrices.append(M)
+        fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
+        intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
+        #print(test_intrinsics)
 
-       # pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
+        for i in range(poses.shape[0]):
+            M = poses[i]
+            M = torch.from_numpy(M)
+            M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                  [0, 1, 0, 0],
+                                  [0, 0, 1, 0],
+                                  [0, 0, 0, 1]]).to(M.device)
+
+            M = torch.cat(
+                [M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
+            # M = torch.inverse(M)
+            pose_matrices.append(M)
+
+        pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
         image, depth = self.render(
             decoder, code, density_bitfield, h, w, test_intrinsics, test_poses, cfg=cfg)
-        # image_multi, depth_multi = self.render(
-        #     decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
+        image_multi, depth_multi = self.render(
+            decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
 
         def clamp_image(img, num_images):
             images = img.permute(0, 1, 4, 2, 3).reshape(
@@ -585,7 +585,7 @@ class BaseNeRF(nn.Module):
             return torch.round(images * 255) / 255
 
         pred_imgs = clamp_image(image, num_imgs)
-        # pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
+        pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
 
         if test_imgs is not None:
             test_psnr = eval_psnr(pred_imgs, target_imgs)
@@ -615,8 +615,8 @@ class BaseNeRF(nn.Module):
             output_viz = torch.round(pred_imgs.permute(0, 2, 3, 1) * 255).to(
                 torch.uint8).cpu().numpy().reshape(num_scenes, num_imgs, h, w, 3)
 
-            # output_viz_multi = torch.round(pred_imgs_multi.permute(0, 2, 3, 1) * 255).to(
-            #     torch.uint8).cpu().numpy().reshape(num_scenes, poses.shape[0], h, w, 3)
+            output_viz_multi = torch.round(pred_imgs_multi.permute(0, 2, 3, 1) * 255).to(
+                torch.uint8).cpu().numpy().reshape(num_scenes, poses.shape[0], h, w, 3)
 
             if test_imgs is not None:
                 real_imgs_viz = (target_imgs.permute(0, 2, 3, 1) * 255).to(
@@ -639,11 +639,11 @@ class BaseNeRF(nn.Module):
                     plt.imsave(
                         os.path.join(viz_dir, name),
                         output_viz[scene_id][img_id])
-                # for img_id in range(poses.shape[0]):
-                #     name = 'mp_scene_' + scene_name_single + '_{:03d}.png'.format(img_id)
-                #     plt.imsave(
-                #         os.path.join(viz_dir, name),
-                #         output_viz_multi[scene_id][img_id])
+                for img_id in range(poses.shape[0]):
+                    name = 'mp_scene_' + scene_name_single + '_{:03d}.png'.format(img_id)
+                    plt.imsave(
+                        os.path.join(viz_dir, name),
+                        output_viz_multi[scene_id][img_id])
             if isinstance(decoder, DistributedDataParallel):
                 decoder = decoder.module
             code_range = cfg.get('clip_range', [-1, 1])

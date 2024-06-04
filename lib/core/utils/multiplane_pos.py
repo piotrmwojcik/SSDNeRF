@@ -22,24 +22,24 @@ _REGULAR_POSES = [(1.3, 0.0, 0.0), (-1.3, 0.0, 0.0), (0.0, 1.3, 0.0),
                  (0.0, -1.3, 0.0), (0.5, 0.5, -1.09087), (-0.5, -0.5, -1.09087)]
 REGULAR_POSES = [cart2sph(p[0], p[1], p[2]) for p in _REGULAR_POSES]
 
-def fibonacci_sphere(samples=1000):
-
-    points = []
-    phi = math.pi * (math.sqrt(5.) - 1.)  # golden angle in radians
-
-    for i in range(samples):
-        y = 1 - (i / float(samples - 1)) * 2  # y goes from 1 to -1
-        radius = math.sqrt(1 - y * y)  # radius at y
-
-        theta = phi * i  # golden angle increment
-
-        x = math.cos(theta) * radius
-        z = math.sin(theta) * radius
-
-        points.append(cart2sph(x,y,z))
-
-    return points
-
+# def fibonacci_sphere(samples=1000):
+#
+#     points = []
+#     phi = math.pi * (math.sqrt(5.) - 1.)  # golden angle in radians
+#
+#     for i in range(samples):
+#         y = 1 - (i / float(samples - 1)) * 2  # y goes from 1 to -1
+#         radius = math.sqrt(1 - y * y)  # radius at y
+#
+#         theta = phi * i  # golden angle increment
+#
+#         x = math.cos(theta) * radius
+#         z = math.sin(theta) * radius
+#
+#         points.append(cart2sph(x,y,z))
+#
+#     return points
+#
 
 trans_t = lambda t : torch.Tensor([
     [1,0,0,0],
