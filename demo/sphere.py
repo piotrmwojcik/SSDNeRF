@@ -26,17 +26,22 @@ def fibonacci_sphere(samples=1000):
 
     return points
 
+
 def cart2sph(x, y, z):
     rho = np.sqrt(x**2 + y**2 + z**2)
     phi = np.arccos(z / rho)
     theta = np.arctan2(y, x)
     return theta, phi, rho
 
-# Visualize poses on a sphere
-poses = [pose_spherical(theta, phi, -1.3) for theta, phi, _ in fibonacci_sphere(6)]
 
-print('!!!')
-print(poses[0])
+_REGULAR_POSES = [(1.3, 0.0, 0.0), (-1.3, 0.0, 0.0), (0.0, 1.3, 0.0),
+                 (0.0, -1.3, 0.0), (0.5, 0.5, -1.09087), (-0.5, -0.5, -1.09087)]
+REGULAR_POSES = [cart2sph(p[0], p[1], p[2]) for p in _REGULAR_POSES]
+
+
+# Visualize poses on a sphere
+
+poses = [pose_spherical(theta, phi, -1.307) for theta, phi, _ in REGULAR_POSES]
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
