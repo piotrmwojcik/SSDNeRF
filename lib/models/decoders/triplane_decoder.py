@@ -285,6 +285,7 @@ class MultiPlaneDecoder(VolumeRenderer):
 
             print('!!!')
             print(code_m.shape)
+            print(code_single.shape)
 
             image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
                                       poses=np.stack(poses),
