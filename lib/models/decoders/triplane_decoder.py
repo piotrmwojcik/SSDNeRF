@@ -220,7 +220,6 @@ class MultiPlaneDecoder(VolumeRenderer):
                 code.reshape(num_scenes * 3, n_channels, h, w)
             ).reshape(num_scenes, 3, n_channels, h, w)
 
-
         if self.scene_base is not None:
             code = code + self.scene_base
 
@@ -283,6 +282,9 @@ class MultiPlaneDecoder(VolumeRenderer):
 
             # poses = [pose_spherical(theta, phi, -1.3) for phi, theta in fibonacci_sphere(6)]
             poses = [pose_spherical(theta, phi, -1.3) for phi, theta in REGULAR_POSES]
+
+            print('!!!')
+            print(code_m.shape)
 
             image_plane = ImagePlanes(focal=torch.Tensor([10.0]),
                                       poses=np.stack(poses),
