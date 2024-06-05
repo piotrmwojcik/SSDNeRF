@@ -503,7 +503,7 @@ class BaseNeRF(nn.Module):
                             num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
                         return torch.round(images * 255) / 255
 
-                    pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
+                    pred_imgs_multi = image_multi#clamp_image(image_multi, poses.shape[0])
                     imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
                                                             imgs_consistency.shape[4])
                     imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
