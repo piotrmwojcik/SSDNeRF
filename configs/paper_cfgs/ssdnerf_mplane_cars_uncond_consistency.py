@@ -70,8 +70,8 @@ model = dict(
     #reg_loss=None,
     cache_size=2458)  # number of training scenes
 
-save_interval = 5000
-eval_interval = 20000
+save_interval = 1000
+eval_interval = 1000
 code_dir = 'cache/' + name + '/code'
 work_dir = 'work_dirs/' + name
 

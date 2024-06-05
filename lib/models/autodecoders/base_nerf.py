@@ -498,7 +498,7 @@ class BaseNeRF(nn.Module):
                         decoder, code, density_bitfield,
                         h, w, intrinsics, pose_matrices, cfg=cfg)
 
-                image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
+                #image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
                 pred_imgs_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
                     num_scenes * poses.shape[0], 3, h, w)
 
