@@ -469,9 +469,7 @@ class BaseNeRF(nn.Module):
                     cfg=cfg, use_reg_loss=False)
 
                 num_imgs_consistency = 5
-                print('!!!')
-                print(code.shape)
-                code_m, _ = torch.split(code, [5, 1], dim=1)
+                code_m, _ = torch.split(code, [5, 1], dim=2)
                 imgs_consistency = code_m.reshape(num_scenes, num_imgs_consistency, 3, h, w)
                 imgs_consistency = imgs_consistency.permute(0, 1, 3, 4, 2)
 
