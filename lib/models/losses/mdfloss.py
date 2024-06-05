@@ -2,12 +2,11 @@ import torch
 import torch.nn as nn
 
 
-
 class MDFLoss(nn.Module):
     def __init__(self, saved_ds_path, device):
         super(MDFLoss, self).__init__()
 
-        self.Ds = torch.load(saved_ds_path)
+        self.Ds = torch.load(saved_ds_path, map_location=torch.device('cpu'))
 
         self.num_discs = len(self.Ds)
 
