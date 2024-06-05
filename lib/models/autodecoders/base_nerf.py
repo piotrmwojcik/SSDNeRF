@@ -468,8 +468,9 @@ class BaseNeRF(nn.Module):
                     target_rgbs, rays_o, rays_d, dt_gamma, scale_num_ray=num_scene_pixels,
                     cfg=cfg, use_reg_loss=False)
 
-                num_imgs_consistency = 6
-                imgs_consistency = code.reshape(num_scenes, num_imgs_consistency, 3, h, w)
+                num_imgs_consistency = 5
+                code_m, _ = torch.split(code, [5, 1], dim=1)
+                imgs_consistency = code_m.reshape(num_scenes, num_imgs_consistency, 3, h, w)
                 imgs_consistency = imgs_consistency.permute(0, 1, 3, 4, 2)
 
                 num_scene_pixels_consistency = num_imgs_consistency * h * w
