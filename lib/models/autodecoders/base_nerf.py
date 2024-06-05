@@ -114,7 +114,8 @@ class BaseNeRF(nn.Module):
         self.pixel_loss = build_module(pixel_loss)
         self.reg_loss = build_module(reg_loss) if reg_loss is not None else None
         self.train_cfg = train_cfg
-        self.mdfloss = MDFLoss(saved_ds_path="/data/pwojcik/SSDNeRF/lib/models/autodecoders/weights", cuda_available=True)
+        self.mdfloss = MDFLoss(saved_ds_path="/data/pwojcik/SSDNeRF/lib/models/autodecoders/weights/Ds_SISR.pth",
+                               cuda_available=True)
         self.test_cfg = test_cfg
         self.update_extra_interval = update_extra_interval
         self.lpips = [] if use_lpips_metric else None  # use a list to avoid registering the LPIPS model in state_dict
