@@ -23,6 +23,7 @@ torch.backends.cuda.matmul.allow_tf32 = True
 from mmcv import Config, DictAction
 from mmcv.runner import get_dist_info, init_dist
 from mmcv.utils import get_git_hash
+from mmgen.models.architectures.common import get_module_device
 
 from mmgen import __version__
 from mmgen.apis import set_random_seed
@@ -217,8 +218,8 @@ def main():
     model = build_model(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
 
-    print('!!!')
-    print(model.mdfloss)
+    for ds in model.mdfloss.Ds:
+        ds.to(get_module_device(model))
 
     datasets = [build_dataset(cfg.data.train)]
     if len(cfg.workflow) == 2:
