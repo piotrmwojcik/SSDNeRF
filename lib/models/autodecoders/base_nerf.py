@@ -134,7 +134,6 @@ class BaseNeRF(nn.Module):
             self.train_cfg_backup[key] = rgetattr(self, key, None)
 
         self.consistency_weight_scheduler = scheduler
-        self.mdfloss.cuda()
 
     def train(self, mode=True):
         if mode:

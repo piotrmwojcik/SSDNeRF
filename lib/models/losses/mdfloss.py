@@ -7,7 +7,7 @@ class MDFLoss(nn.Module):
         super(MDFLoss, self).__init__()
 
         if cuda_available:
-            self.Ds = torch.load(saved_ds_path)
+            self.Ds = torch.load(saved_ds_path, device=self.device)
         else:
             self.Ds = torch.load(saved_ds_path, map_location=torch.device('cpu'))
 
