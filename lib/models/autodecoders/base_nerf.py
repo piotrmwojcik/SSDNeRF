@@ -491,21 +491,20 @@ class BaseNeRF(nn.Module):
 
                 pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
-                image_multi, _ = self.render(
-                    decoder, code.clone().detach(), density_bitfield.clone().detach(),
-                    h, w, intrinsics, pose_matrices, cfg=cfg)
+                with torch.no_grad():
+                    image_multi, _ = self.render(
+                        decoder, code, density_bitfield,
+                        h, w, intrinsics, pose_matrices, cfg=cfg)
 
-                def clamp_image(img, num_images):
-                    images = img.permute(0, 1, 4, 2, 3).reshape(
-                        num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
-                    return torch.round(images * 255) / 255
+                    def clamp_image(img, num_images):
+                        images = img.permute(0, 1, 4, 2, 3).reshape(
+                            num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
+                        return torch.round(images * 255) / 255
 
-                pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
-                imgs_consistency = imgs_consistency.view(-1,
-                                                         imgs_consistency.shape[2],
-                                                         imgs_consistency.shape[3],
-                                                         imgs_consistency.shape[4])
-                imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
+                    pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
+                    imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
+                                                            imgs_consistency.shape[4])
+                    imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
 
                 loss_consistency = torch.tensor(5.0).cuda() #self.mdfloss(pred_imgs_multi, imgs_consistency)
                 loss_consistency_dict = dict(mdfloss=loss_consistency)
