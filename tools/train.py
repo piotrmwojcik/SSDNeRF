@@ -219,6 +219,8 @@ def main():
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
 
     for ds in model.mdfloss.Ds:
+        print('!!')
+        print(get_module_device(model))
         ds.to(get_module_device(model))
 
     datasets = [build_dataset(cfg.data.train)]
