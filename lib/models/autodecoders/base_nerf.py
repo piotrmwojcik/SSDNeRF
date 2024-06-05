@@ -114,7 +114,7 @@ class BaseNeRF(nn.Module):
         self.pixel_loss = build_module(pixel_loss)
         self.reg_loss = build_module(reg_loss) if reg_loss is not None else None
         self.train_cfg = train_cfg
-        self.mdfloss = MDFLoss(saved_ds_path="/data/pwojcik/SSDNeRF/lib/models/autodecoders/weights/Ds_SISR.pth",
+        self.mdfloss = MDFLoss(saved_ds_path="/data/pwojcik/SSDNeRF/lib/models/autodecoders/weights/Ds_JPEG.pth",
                                cuda_available=True)
         self.test_cfg = test_cfg
         self.update_extra_interval = update_extra_interval
