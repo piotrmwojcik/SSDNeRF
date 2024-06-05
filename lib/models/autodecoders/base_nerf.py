@@ -492,7 +492,7 @@ class BaseNeRF(nn.Module):
                 pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
                 image_multi, _ = self.render(
-                    decoder, code.clone().detach(), density_bitfield,
+                    decoder, code.clone().detach(), density_bitfield.clone().detach(),
                     h, w, intrinsics, pose_matrices, cfg=cfg)
 
                 def clamp_image(img, num_images):
