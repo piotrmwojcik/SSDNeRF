@@ -493,7 +493,7 @@ class BaseNeRF(nn.Module):
 
                 with torch.no_grad():
                     image_multi, _ = self.render(
-                        decoder, code, density_bitfield,
+                        decoder, code.clone().detach(), density_bitfield,
                         h, w, intrinsics, pose_matrices, cfg=cfg)
 
                     image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
@@ -504,7 +504,7 @@ class BaseNeRF(nn.Module):
                                                             imgs_consistency.shape[4])
                     imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
 
-                loss_consistency = torch.tensor(5.0).cuda()#self.mdfloss(pred_imgs_multi, imgs_consistency)
+                loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
                 loss_consistency_dict = dict(mdfloss=loss_consistency)
                 if prior_grad is not None:
                     if isinstance(code_, list):
