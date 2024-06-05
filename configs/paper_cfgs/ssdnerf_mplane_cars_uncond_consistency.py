@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond_consistency_regular_T2'
+name = 'ssdnerf_mplane_3p_cars_uncond_consistency_regular'
 
 DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
 
@@ -48,11 +48,11 @@ model = dict(
     decoder=dict(
         type='TriPlaneDecoder',
         interp_mode='bilinear',
-        base_layers=[6 * 5, 84],
-        density_layers=[84, 1],
-        color_layers=[84, 3],
+        base_layers=[6 * 5, 64],
+        density_layers=[64, 1],
+        color_layers=[64, 3],
         use_dir_enc=True,
-        dir_layers=[16, 84],
+        dir_layers=[16, 64],
         activation='silu',
         sigma_activation='trunc_exp',
         sigmoid_saturation=0.001,
