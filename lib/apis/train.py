@@ -65,8 +65,7 @@ def train_model(model,
         model = model.cuda()
 
     for ds in model.mdfloss.Ds:
-        print(get_module_device(model))
-        ds.to(get_module_device(model))
+        ds = ds.cuda()
 
 
     #build scheduler
