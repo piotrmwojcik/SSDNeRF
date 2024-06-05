@@ -500,6 +500,11 @@ class BaseNeRF(nn.Module):
                     target_rgbs, rays_o, rays_d, dt_gamma, scale_num_ray=num_scene_pixels_consistency,
                     cfg=cfg, use_reg_loss=False)
 
+                print('!!!')
+                print(out_rgbs_consistency.shape)
+                print(imgs_consistency.shape)
+                print(target_rgbs.shape)
+
                 if prior_grad is not None:
                     if isinstance(code_, list):
                         for code_single_, prior_grad_single in zip(code_, prior_grad):
