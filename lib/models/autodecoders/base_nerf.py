@@ -491,19 +491,20 @@ class BaseNeRF(nn.Module):
 
                 pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
-                with torch.no_grad():
-                    image_multi, _ = self.render(
-                        decoder, code, density_bitfield,
-                        h, w, intrinsics, pose_matrices, cfg=cfg)
+                #with torch.no_grad():
+                #    image_multi, _ = self.render(
+                #        decoder, code, density_bitfield,
+                #        h, w, intrinsics, pose_matrices, cfg=cfg)
 
-                #image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
+                image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
                 pred_imgs_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
                     num_scenes * poses.shape[0], 3, h, w)
+
                 imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
                                                         imgs_consistency.shape[4])
                 imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
 
-                loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
+                loss_consistency = torch.tensor(5).cuda()#self.mdfloss(pred_imgs_multi, imgs_consistency)
                 loss_consistency_dict = dict(mdfloss=loss_consistency)
                 if prior_grad is not None:
                     if isinstance(code_, list):
