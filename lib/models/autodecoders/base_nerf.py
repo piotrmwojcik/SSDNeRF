@@ -501,8 +501,10 @@ class BaseNeRF(nn.Module):
                     return torch.round(images * 255) / 255
 
                 pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
-                imgs_consistency = imgs_consistency.reshape(imgs_consistency.shape[0] * imgs_consistency.shape[1],
-                                                            imgs_consistency.shape[2], imgs_consistency.shape[3])
+                imgs_consistency = imgs_consistency.view(-1,
+                                                         imgs_consistency.shape[2],
+                                                         imgs_consistency.shape[3],
+                                                         imgs_consistency.shape[4])
                 imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
 
                 loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
