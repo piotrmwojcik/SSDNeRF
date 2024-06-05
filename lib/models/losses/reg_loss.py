@@ -5,10 +5,9 @@ from mmgen.models.losses.utils import weighted_loss
 
 @weighted_loss
 def reg_loss(tensor, power=1):
-    print('!!!')
-    print(tensor.shape)
-    return tensor.abs().mean() if power == 1 \
-        else (tensor.abs() ** power).mean()
+    _, code_3p = torch.split(tensor, [5, 1], dim=2)
+    return code_3p.abs().mean() if power == 1 \
+        else (code_3p.abs() ** power).mean()
 
 
 @MODULES.register_module()
