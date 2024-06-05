@@ -499,9 +499,9 @@ class BaseNeRF(nn.Module):
                     image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
                     pred_imgs_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
                         num_scenes * poses.shape[0], 3, h, w)
-                    imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
-                                                            imgs_consistency.shape[4])
-                    imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
+                imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
+                                                        imgs_consistency.shape[4])
+                imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
 
                 loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
                 loss_consistency_dict = dict(mdfloss=loss_consistency)
