@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond_consistency_regular_late'
+name = 'ssdnerf_mplane_cars_uncond_consistency_regular_test'
 
 DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
 
@@ -70,8 +70,8 @@ model = dict(
     #reg_loss=None,
     cache_size=2458)  # number of training scenes
 
-save_interval = 5000
-eval_interval = 10000
+save_interval = 2000
+eval_interval = 5000
 code_dir = 'cache/' + name + '/code'
 work_dir = 'work_dirs/' + name
 
@@ -187,11 +187,8 @@ custom_hooks = [
         viz_dir='cache/' + name + '/viz'),
     dict(
         type='ModelUpdaterHook',
-        step=[0, 2000, 100000, 200000, 800000],
-        cfgs=[{'diffusion.ddpm_loss.weight_scale': 0.0},
-              {'train_cfg.extra_scene_step': 3},
-              {'diffusion.ddpm_loss.weight_scale': 4.0},
-              # decay schedule of K_in & triplane lr
+        step=[2000, 100000, 500000],
+        cfgs=[{'train_cfg.extra_scene_step': 3},  # decay schedule of K_in & triplane lr
               {'train_cfg.extra_scene_step': 1,
                'diffusion.ddpm_loss.freeze_norm': True},
               {'train_cfg.extra_scene_step': 1,
