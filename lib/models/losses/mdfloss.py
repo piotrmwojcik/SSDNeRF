@@ -9,8 +9,6 @@ class MDFLoss(nn.Module):
 
         self.Ds = torch.load(saved_ds_path, map_location=torch.device('cpu'))
 
-        for i in self.Ds:
-            print(get_module_device(i))
         self.num_discs = len(self.Ds)
 
     def forward(self, x, y, num_scales=8, is_ascending=1):
