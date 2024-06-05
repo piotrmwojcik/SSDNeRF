@@ -10,6 +10,8 @@ import trimesh
 
 from copy import deepcopy
 from glob import glob
+
+from torch.autograd import Variable
 from torch.nn.parallel.distributed import DistributedDataParallel
 from mmcv.runner import load_checkpoint
 from mmgen.models.builder import MODULES, build_module
@@ -504,6 +506,7 @@ class BaseNeRF(nn.Module):
                                                         imgs_consistency.shape[4])
                 imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
 
+                pred_imgs_multi= Variable(pred_imgs_multi, requires_grad=False)
                 loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
                 loss_consistency_dict = dict(mdfloss=loss_consistency)
                 if prior_grad is not None:
