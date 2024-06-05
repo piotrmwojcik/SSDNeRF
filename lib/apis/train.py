@@ -74,7 +74,7 @@ def train_model(model,
                 return 1
             elif iteration < total_iterations:
                 cosine_decay = 0.5 * (1 + math.cos(math.pi * (iteration - warmup_iterations) / (total_iterations - warmup_iterations)))
-                return 0.8 + 0.1 * cosine_decay
+                return 0.8 + 0.2 * cosine_decay
             else:
                 return 0.8
         return LambdaLR(optimizer, lr_lambda)
