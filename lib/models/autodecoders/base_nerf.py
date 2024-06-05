@@ -492,9 +492,9 @@ class BaseNeRF(nn.Module):
                 pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
                 with torch.no_grad():
-                    image_multi, _ = self.render(
-                        decoder, code.clone().detach(), density_bitfield,
-                        h, w, intrinsics, pose_matrices, cfg=cfg)
+                    #image_multi, _ = self.render(
+                    #    decoder, code, density_bitfield,
+                    #    h, w, intrinsics, pose_matrices, cfg=cfg)
 
                     image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
                     image_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
