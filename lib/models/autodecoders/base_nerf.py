@@ -496,14 +496,15 @@ class BaseNeRF(nn.Module):
                 rays_o, rays_d, target_rgbs = self.ray_sample(
                     rays_o_consistency, rays_d_consistency, imgs_consistency, n_consistency_rays, sample_inds=None)
 
-                print('!!!')
-                print(out_rgbs_consistency.shape)
-                print(imgs_consistency.shape)
 
                 out_rgbs_consistency, loss_consistency, loss_consistency_dict = self.loss(
                     decoder, code, density_bitfield,
                     target_rgbs, rays_o, rays_d, dt_gamma, scale_num_ray=num_scene_pixels_consistency,
                     cfg=cfg, use_reg_loss=False)
+
+                print('!!!')
+                print(out_rgbs_consistency.shape)
+                print(imgs_consistency.shape)
 
                 if prior_grad is not None:
                     if isinstance(code_, list):
