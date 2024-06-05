@@ -24,8 +24,8 @@ _REGULAR_POSES = [(1.3, 0.0, 0.0), (-1.3, 0.0, 0.0), (0.0, 1.3, 0.0),
 
 REGULAR_POSES = [cart2sph(p[0], p[1], p[2]) for p in _REGULAR_POSES]
 
-def fibonacci_sphere(samples=1000):
 
+def fibonacci_sphere(samples=1000):
     points = []
     phi = math.pi * (math.sqrt(5.) - 1.)  # golden angle in radians
 
