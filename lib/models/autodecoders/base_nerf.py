@@ -421,7 +421,6 @@ class BaseNeRF(nn.Module):
         with module_requires_grad(decoder, False):
             n_inverse_steps = cfg.get('n_inverse_steps', 1000)
             n_inverse_rays = cfg.get('n_inverse_rays', 4096)
-            n_consistency_rays = cfg.get('n_consistency_rays', 4096)
 
             num_scenes, num_imgs, h, w, _ = cond_imgs.size()
             num_scene_pixels = num_imgs * h * w
@@ -475,7 +474,6 @@ class BaseNeRF(nn.Module):
                 imgs_consistency = code.reshape(num_scenes, num_imgs_consistency, 3, h, w)
                 imgs_consistency = imgs_consistency.permute(0, 1, 3, 4, 2)
 
-                num_scene_pixels_consistency = num_imgs_consistency * h * w
                 pose_matrices = []
                 fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
                 intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
@@ -507,7 +505,7 @@ class BaseNeRF(nn.Module):
                                                          imgs_consistency.shape[4])
                 imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
 
-                loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
+                loss_consistency = torch.tensor(5.0).cuda() #self.mdfloss(pred_imgs_multi, imgs_consistency)
                 loss_consistency_dict = dict(mdfloss=loss_consistency)
                 if prior_grad is not None:
                     if isinstance(code_, list):
