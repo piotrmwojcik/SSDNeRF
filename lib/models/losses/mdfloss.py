@@ -7,7 +7,7 @@ class MDFLoss(nn.Module):
     def __init__(self, saved_ds_path, device):
         super(MDFLoss, self).__init__()
 
-        self.Ds = torch.load(saved_ds_path, map_location=device)
+        self.Ds = torch.load(saved_ds_path)
 
         self.num_discs = len(self.Ds)
 
