@@ -15,6 +15,7 @@ from mmcv.runner import load_checkpoint
 from mmgen.models.builder import MODULES, build_module
 from mmgen.models.architectures.common import get_module_device
 
+from ..losses.mdfloss import MDFLoss
 from ...core import custom_meshgrid, eval_psnr, eval_ssim_skimage, reduce_mean, rgetattr, rsetattr, extract_geometry, \
     module_requires_grad, get_cam_rays
 from lib.ops import morton3D, morton3D_invert, packbits
@@ -113,6 +114,7 @@ class BaseNeRF(nn.Module):
         self.pixel_loss = build_module(pixel_loss)
         self.reg_loss = build_module(reg_loss) if reg_loss is not None else None
         self.train_cfg = train_cfg
+        self.mdfloss = MDFLoss(path_disc="./weights/Ds_JPEG.pth", cuda_available=True)
         self.test_cfg = test_cfg
         self.update_extra_interval = update_extra_interval
         self.lpips = [] if use_lpips_metric else None  # use a list to avoid registering the LPIPS model in state_dict
@@ -490,20 +492,16 @@ class BaseNeRF(nn.Module):
 
                 pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
-                rays_o_consistency, rays_d_consistency = get_cam_rays(pose_matrices, intrinsics, h, w)
+                image_multi, depth_multi = self.render(
+                    decoder, code, density_bitfield, h, w, intrinsics, pose_matrices, cfg=cfg)
 
-                rays_o, rays_d, target_rgbs = self.ray_sample(
-                    rays_o_consistency, rays_d_consistency, imgs_consistency, n_consistency_rays, sample_inds=None)
+                def clamp_image(img, num_images):
+                    images = img.permute(0, 1, 4, 2, 3).reshape(
+                        num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
+                    return torch.round(images * 255) / 255
 
-                out_rgbs_consistency, loss_consistency, loss_consistency_dict = self.loss(
-                    decoder, code, density_bitfield,
-                    target_rgbs, rays_o, rays_d, dt_gamma, scale_num_ray=num_scene_pixels_consistency,
-                    cfg=cfg, use_reg_loss=False)
-
-                print('!!!')
-                print(out_rgbs_consistency.shape)
-                print(imgs_consistency.shape)
-                print(target_rgbs.shape)
+                pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
+                loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
 
                 if prior_grad is not None:
                     if isinstance(code_, list):
