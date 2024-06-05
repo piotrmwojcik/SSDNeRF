@@ -8,6 +8,8 @@ class MDFLoss(nn.Module):
         super(MDFLoss, self).__init__()
 
         self.Ds = torch.load(saved_ds_path)
+        for ds in self.Ds:
+            ds.requires_grad = False
 
         self.num_discs = len(self.Ds)
 
