@@ -500,10 +500,11 @@ class BaseNeRF(nn.Module):
                         num_scenes * num_images, 3, h, w).clamp(min=0, max=1)
                     return torch.round(images * 255) / 255
 
+
+                pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
                 print('!!!')
                 print(image_multi.shape)
                 print(pred_imgs_multi.shape)
-                pred_imgs_multi = clamp_image(image_multi, poses.shape[0])
                 loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
 
                 if prior_grad is not None:
