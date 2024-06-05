@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from mmgen.models.architectures.common import get_module_device
 
 
 class MDFLoss(nn.Module):
@@ -7,7 +8,7 @@ class MDFLoss(nn.Module):
         super(MDFLoss, self).__init__()
 
         if cuda_available:
-            self.Ds = torch.load(saved_ds_path, device=self.device)
+            self.Ds = torch.load(saved_ds_path, device = get_module_device(self))
         else:
             self.Ds = torch.load(saved_ds_path, map_location=torch.device('cpu'))
 
