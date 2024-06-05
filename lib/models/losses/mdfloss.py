@@ -1,16 +1,13 @@
 import torch
 import torch.nn as nn
-from mmgen.models.architectures.common import get_module_device
+
 
 
 class MDFLoss(nn.Module):
-    def __init__(self, saved_ds_path, cuda_available=True):
+    def __init__(self, saved_ds_path, device):
         super(MDFLoss, self).__init__()
 
-        if cuda_available:
-            self.Ds = torch.load(saved_ds_path, device = get_module_device(self))
-        else:
-            self.Ds = torch.load(saved_ds_path, map_location=torch.device('cpu'))
+        self.Ds = torch.load(saved_ds_path, device=device)
 
         self.num_discs = len(self.Ds)
 
