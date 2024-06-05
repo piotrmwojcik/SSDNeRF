@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond_consistency_regular_test'
+name = 'ssdnerf_mplane_cars_uncond_consistency_regular_T2'
 
 DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
 
@@ -70,8 +70,8 @@ model = dict(
     #reg_loss=None,
     cache_size=2458)  # number of training scenes
 
-save_interval = 2000
-eval_interval = 5000
+save_interval = 5000
+eval_interval = 20000
 code_dir = 'cache/' + name + '/code'
 work_dir = 'work_dirs/' + name
 
