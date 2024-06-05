@@ -497,9 +497,8 @@ class BaseNeRF(nn.Module):
                     #    h, w, intrinsics, pose_matrices, cfg=cfg)
 
                     image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
-                    image_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
-                        num_scenes * poses.shape[0], 3, h, w)#.clamp(min=0, max=1)
-                    #pred_imgs_multi = torch.round(image_multi * 255) / 255
+                    pred_imgs_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
+                        num_scenes * poses.shape[0], 3, h, w)
                     imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
                                                             imgs_consistency.shape[4])
                     imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
