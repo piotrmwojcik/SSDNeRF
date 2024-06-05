@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 from mmgen.models.builder import MODULES
 from mmgen.models.losses.utils import weighted_loss
 
