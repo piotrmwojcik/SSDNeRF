@@ -5,6 +5,8 @@ from mmgen.models.losses.utils import weighted_loss
 
 @weighted_loss
 def reg_loss(tensor, power=1):
+    print('!!!')
+    print(tensor.shape)
     return tensor.abs().mean() if power == 1 \
         else (tensor.abs() ** power).mean()
 
