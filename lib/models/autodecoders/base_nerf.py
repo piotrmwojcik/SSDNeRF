@@ -540,10 +540,9 @@ class BaseNeRF(nn.Module):
             imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
 
             loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
+            loss_consistency_dict = dict(mdfloss=loss_consistency)
             loss_consistency = (1 - beta) * loss_consistency
             loss = loss_nerf + loss_consistency
-
-            loss_consistency_dict = dict(mdfloss=loss_consistency)
 
             if prior_grad is not None:
                 if isinstance(code_, list):
