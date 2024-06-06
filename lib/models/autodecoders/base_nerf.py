@@ -547,6 +547,20 @@ class BaseNeRF(nn.Module):
             if self.consistency_weight_scheduler is not None:
                 self.consistency_weight_scheduler.step()
                 loss_consistency_dict.update(beta=beta)
+
+            if prior_grad is not None:
+                if isinstance(code_, list):
+                    for code_single_, prior_grad_single in zip(code_, prior_grad):
+                        code_single_.grad.copy_(prior_grad_single)
+                else:
+                    code_.grad.copy_(prior_grad)
+            else:
+                if isinstance(code_optimizer, list):
+                    for code_optimizer_single in code_optimizer:
+                        code_optimizer_single.zero_grad()
+                else:
+                    code_optimizer.zero_grad()
+
             loss_consistency.backward()
 
             if isinstance(code_optimizer, list):
