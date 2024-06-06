@@ -502,7 +502,6 @@ class BaseNeRF(nn.Module):
 
                 if show_pbar:
                     pbar.update()
-            print('aaa')
             code = self.code_activation(
                 torch.stack(code_, dim=0) if isinstance(code_, list)
                 else code_)
@@ -527,9 +526,12 @@ class BaseNeRF(nn.Module):
 
             pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
 
-            image_multi, _ = self.render(
-                decoder, code, density_bitfield,
-                h, w, intrinsics, pose_matrices, cfg=cfg)
+            print('a')
+            with torch.no_grad():
+                image_multi, _ = self.render(
+                    decoder, code, density_bitfield,
+                    h, w, intrinsics, pose_matrices, cfg=cfg)
+            print('b')
 
             # image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
             pred_imgs_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
@@ -561,7 +563,6 @@ class BaseNeRF(nn.Module):
                         code_scheduler_single.step()
                 else:
                     code_scheduler.step()
-            print('bbb')
         decoder.train(decoder_training_prev)
 
         return code.detach(), density_grid, density_bitfield, \
