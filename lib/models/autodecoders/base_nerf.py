@@ -472,43 +472,6 @@ class BaseNeRF(nn.Module):
                     target_rgbs, rays_o, rays_d, dt_gamma, scale_num_ray=num_scene_pixels,
                     cfg=cfg, use_reg_loss=False)
 
-                num_imgs_consistency = 6
-                imgs_consistency = code.reshape(num_scenes, num_imgs_consistency, 3, h, w)
-                imgs_consistency = imgs_consistency.permute(0, 1, 3, 4, 2)
-
-                pose_matrices = []
-                fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
-                intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
-
-                for i in range(poses.shape[0]):
-                    M = poses[i]
-                    M = torch.from_numpy(M)
-                    M = M @ torch.Tensor([[-1, 0, 0, 0],
-                                          [0, 1, 0, 0],
-                                          [0, 0, 1, 0],
-                                          [0, 0, 0, 1]]).to(M.device)
-                    M = torch.cat([M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
-                    M = torch.cat([M, M.new_tensor([[0.0, 0.0, 0.0, 1.0]])], dim=-2)
-                    pose_matrices.append(M)
-
-                pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
-
-                print('aaa')
-                image_multi, _ = self.render(
-                    decoder, code, density_bitfield,
-                    h, w, intrinsics, pose_matrices, cfg=cfg)
-                print('bbb')
-
-                #image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
-                pred_imgs_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
-                    num_scenes * poses.shape[0], 3, h, w)
-
-                imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
-                                                        imgs_consistency.shape[4])
-                imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
-
-                loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
-                loss_consistency_dict = dict(mdfloss=loss_consistency)
                 if prior_grad is not None:
                     if isinstance(code_, list):
                         for code_single_, prior_grad_single in zip(code_, prior_grad):
@@ -522,8 +485,7 @@ class BaseNeRF(nn.Module):
                     else:
                         code_optimizer.zero_grad()
 
-                loss = loss_nerf + (1-beta) * loss_consistency
-                loss.backward()
+                loss_nerf.backward()
 
                 if isinstance(code_optimizer, list):
                     for code_optimizer_single in code_optimizer:
@@ -540,9 +502,65 @@ class BaseNeRF(nn.Module):
 
                 if show_pbar:
                     pbar.update()
+
+            code = self.code_activation(
+                torch.stack(code_, dim=0) if isinstance(code_, list)
+                else code_)
+            num_imgs_consistency = 6
+            imgs_consistency = code.reshape(num_scenes, num_imgs_consistency, 3, h, w)
+            imgs_consistency = imgs_consistency.permute(0, 1, 3, 4, 2)
+
+            pose_matrices = []
+            fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
+            intrinsics = fxy.repeat(num_scenes, poses.shape[0], 1).to(device)
+
+            for i in range(poses.shape[0]):
+                M = poses[i]
+                M = torch.from_numpy(M)
+                M = M @ torch.Tensor([[-1, 0, 0, 0],
+                                      [0, 1, 0, 0],
+                                      [0, 0, 1, 0],
+                                      [0, 0, 0, 1]]).to(M.device)
+                M = torch.cat([M[:3, :3], (M[:3, 3:]) / 0.5], dim=-1)
+                M = torch.cat([M, M.new_tensor([[0.0, 0.0, 0.0, 1.0]])], dim=-2)
+                pose_matrices.append(M)
+
+            pose_matrices = torch.stack(pose_matrices).repeat(num_scenes, 1, 1, 1).to(device)
+
+            image_multi, _ = self.render(
+                decoder, code, density_bitfield,
+                h, w, intrinsics, pose_matrices, cfg=cfg)
+
+            # image_multi = torch.rand([8, 6, 128, 128, 3]).cuda()
+            pred_imgs_multi = image_multi.permute(0, 1, 4, 2, 3).reshape(
+                num_scenes * poses.shape[0], 3, h, w)
+
+            imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
+                                                     imgs_consistency.shape[4])
+            imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
+
+            loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
+            loss_consistency = (1 - beta) * loss_consistency
+            loss = loss_nerf + loss_consistency
+
+            loss_consistency_dict = dict(mdfloss=loss_consistency)
             if self.consistency_weight_scheduler is not None:
                 self.consistency_weight_scheduler.step()
                 loss_consistency_dict.update(beta=beta)
+            loss_consistency.backward()
+
+            if isinstance(code_optimizer, list):
+                for code_optimizer_single in code_optimizer:
+                    code_optimizer_single.step()
+            else:
+                code_optimizer.step()
+
+            if code_scheduler is not None:
+                if isinstance(code_scheduler, list):
+                    for code_scheduler_single in code_scheduler:
+                        code_scheduler_single.step()
+                else:
+                    code_scheduler.step()
 
         decoder.train(decoder_training_prev)
 
