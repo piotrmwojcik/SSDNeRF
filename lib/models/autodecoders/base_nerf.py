@@ -502,7 +502,7 @@ class BaseNeRF(nn.Module):
 
                 if show_pbar:
                     pbar.update()
-
+            print('aaa')
             code = self.code_activation(
                 torch.stack(code_, dim=0) if isinstance(code_, list)
                 else code_)
@@ -561,7 +561,7 @@ class BaseNeRF(nn.Module):
                         code_scheduler_single.step()
                 else:
                     code_scheduler.step()
-
+            print('bbb')
         decoder.train(decoder_training_prev)
 
         return code.detach(), density_grid, density_bitfield, \
