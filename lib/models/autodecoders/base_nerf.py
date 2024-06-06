@@ -544,9 +544,6 @@ class BaseNeRF(nn.Module):
             loss = loss_nerf + loss_consistency
 
             loss_consistency_dict = dict(mdfloss=loss_consistency)
-            if self.consistency_weight_scheduler is not None:
-                self.consistency_weight_scheduler.step()
-                loss_consistency_dict.update(beta=beta)
 
             if prior_grad is not None:
                 if isinstance(code_, list):
@@ -575,6 +572,9 @@ class BaseNeRF(nn.Module):
                         code_scheduler_single.step()
                 else:
                     code_scheduler.step()
+        if self.consistency_weight_scheduler is not None:
+            self.consistency_weight_scheduler.step()
+            loss_consistency_dict.update(beta=beta)
         decoder.train(decoder_training_prev)
 
         return code.detach(), density_grid, density_bitfield, \
