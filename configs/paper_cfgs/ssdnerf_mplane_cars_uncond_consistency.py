@@ -205,7 +205,7 @@ runner = dict(
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
-resume_from = None
+resume_from = '/data/pwojcik/SSDNeRF/work_dirs/ssdnerf_mplane_cars_uncond_consistency_regular_T2/ckpt/ssdnerf_mplane_cars_uncond_consistency_regular_T2/latest.pth'
 workflow = [('train', save_interval)]
 use_ddp_wrapper = True
 find_unused_parameters = False
