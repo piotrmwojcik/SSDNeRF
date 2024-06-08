@@ -546,6 +546,7 @@ class BaseNeRF(nn.Module):
                     pickle.dump(pred_imgs_multi, file)
                 with open(os.path.join('/data/pwojcik/SSDNeRF/' + 'code.pkl'), 'wb') as file:
                     pickle.dump(imgs_consistency, file)
+                print('saved')
 
             loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
             loss_consistency_dict = dict(mdfloss=loss_consistency)
