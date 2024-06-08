@@ -507,7 +507,6 @@ class BaseNeRF(nn.Module):
                 else code_)
             num_imgs_consistency = 6
             imgs_consistency = code.reshape(num_scenes, num_imgs_consistency, 3, h, w)
-            imgs_consistency = imgs_consistency.permute(0, 1, 3, 4, 2)
 
             pose_matrices = []
             fxy = torch.Tensor([131.2500, 131.2500, 64.00, 64.00])
@@ -537,7 +536,16 @@ class BaseNeRF(nn.Module):
 
             imgs_consistency = imgs_consistency.view(-1, imgs_consistency.shape[2], imgs_consistency.shape[3],
                                                      imgs_consistency.shape[4])
-            imgs_consistency = imgs_consistency.permute(0, 3, 1, 2)
+
+            from mmcv.runner import get_dist_info
+            import pickle
+            rank, ws = get_dist_info()
+            # a dirty walkround to change the line at the end of pbar
+            if rank == 0:
+                with open(os.path.join('/data/pwojcik/SSDNeRF/' + 'pred_imgs.pkl'), 'wb') as file:
+                    pickle.dump(pred_imgs_multi, file)
+                with open(os.path.join('/data/pwojcik/SSDNeRF/' + 'code.pkl'), 'wb') as file:
+                    pickle.dump(imgs_consistency, file)
 
             loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
             loss_consistency_dict = dict(mdfloss=loss_consistency)
