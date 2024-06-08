@@ -541,12 +541,12 @@ class BaseNeRF(nn.Module):
             import pickle
             rank, ws = get_dist_info()
             # a dirty walkround to change the line at the end of pbar
-            if rank == 0:
-                with open(os.path.join('/data/pwojcik/SSDNeRF/' + 'pred_imgs.pkl'), 'wb') as file:
-                    pickle.dump(pred_imgs_multi, file)
-                with open(os.path.join('/data/pwojcik/SSDNeRF/' + 'code.pkl'), 'wb') as file:
-                    pickle.dump(imgs_consistency, file)
-                print('saved')
+            #if rank == 0:
+            #    with open(os.path.join('/data/pwojcik/SSDNeRF/' + 'pred_imgs.pkl'), 'wb') as file:
+            #        pickle.dump(pred_imgs_multi, file)
+            #    with open(os.path.join('/data/pwojcik/SSDNeRF/' + 'code.pkl'), 'wb') as file:
+            #        pickle.dump(imgs_consistency, file)
+            #    print('saved')
 
             loss_consistency = self.mdfloss(pred_imgs_multi, imgs_consistency)
             loss_consistency_dict = dict(mdfloss=loss_consistency)
