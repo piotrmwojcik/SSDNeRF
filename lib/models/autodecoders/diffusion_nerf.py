@@ -73,6 +73,8 @@ class DiffusionNeRF(MultiSceneNeRF):
         if 'optimizer' in self.train_cfg:
             code_list_, code_optimizers, density_grid, density_bitfield = self.load_cache(data)
             code = self.code_activation(torch.stack(code_list_, dim=0), update_stats=True)
+            print('!!!')
+            print(torch.min(code), torch.max(code))
         else:
             assert 'code' in data
             code, density_grid, density_bitfield = self.load_scene(
