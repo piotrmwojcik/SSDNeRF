@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond_consistency_regular_T2'
+name = 'ssdnerf_mplane_cars_uncond_consistency_regular_debug'
 
 DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
 
