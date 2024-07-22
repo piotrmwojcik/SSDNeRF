@@ -456,6 +456,9 @@ class BaseNeRF(nn.Module):
                     torch.stack(code_, dim=0) if isinstance(code_, list)
                     else code_)
 
+                print("CODE MIN : ", torch.min(code))
+                print("CODE MAX : ", torch.max(code))
+
                 if inverse_step_id % self.update_extra_interval == 0:
                     self.update_extra_state(decoder, code, density_grid, density_bitfield,
                                             iter_density, density_thresh=cfg.get('density_thresh', 0.01))

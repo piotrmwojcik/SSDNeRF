@@ -13,9 +13,7 @@ model = dict(
     type='DiffusionNeRF',
     code_size=(3, 6, 128, 128),
     code_reshape=(18, 128, 128),
-    code_activation=dict(
-        type='TanhCode',
-        scale=2),
+    code_activation=dict(type='IdentityCode'),
     grid_size=64,
     diffusion=dict(
         type='GaussianDiffusion',
