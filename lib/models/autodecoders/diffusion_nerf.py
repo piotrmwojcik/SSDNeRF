@@ -82,8 +82,7 @@ class DiffusionNeRF(MultiSceneNeRF):
         for key in optimizer.keys():
             if key.startswith('diffusion'):
                 optimizer[key].zero_grad()
-        for code_optimizer in code_optimizers:
-            code_optimizer.zero_grad()
+        code_optimizers = []
         if 'decoder' in optimizer:
             optimizer['decoder'].zero_grad()
 
@@ -92,9 +91,7 @@ class DiffusionNeRF(MultiSceneNeRF):
         if 'cond_multi_imgs' in data:
             cond_multi_imgs = data['cond_multi_imgs']
 
-        print('!!!')
-        print(code.shape)
-        print(cond_multi_imgs.shape)
+        code = cond_multi_imgs.view(6, 3, code.shape[-2], code.shape[-1])
 
         if 'cond_imgs' in data:
             cond_imgs = data['cond_imgs']  # (num_scenes, num_imgs, h, w, 3)
