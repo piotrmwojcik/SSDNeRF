@@ -91,7 +91,8 @@ class DiffusionNeRF(MultiSceneNeRF):
         if 'cond_multi_imgs' in data:
             cond_multi_imgs = data['cond_multi_imgs']
 
-        code = cond_multi_imgs.view(6, 3, code.shape[-2], code.shape[-1])
+        for i in range(cond_multi_imgs.shape[0]):
+            code[i] = cond_multi_imgs[i].view(6, 3, code.shape[-2], code.shape[-1])
 
         if 'cond_imgs' in data:
             cond_imgs = data['cond_imgs']  # (num_scenes, num_imgs, h, w, 3)
