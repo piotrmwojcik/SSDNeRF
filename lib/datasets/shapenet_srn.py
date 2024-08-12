@@ -141,6 +141,8 @@ class ShapeNetSRN(Dataset):
 
     def parse_scene(self, scene_id):
         scene = self.scenes[scene_id]
+        print('!!!')
+        print(scene.keys())
         image_paths = scene['image_paths']
         image_multi_paths = scene['image_multi_paths']
         scene_name = image_paths[0].split('/')[-3]
