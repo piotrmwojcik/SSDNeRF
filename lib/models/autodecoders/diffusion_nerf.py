@@ -77,12 +77,12 @@ class DiffusionNeRF(MultiSceneNeRF):
             assert 'code' in data
             code, density_grid, density_bitfield = self.load_scene(
                 data, load_density='decoder' in optimizer)
-            code_optimizers = []
+            #code_optimizers = []
 
         for key in optimizer.keys():
             if key.startswith('diffusion'):
                 optimizer[key].zero_grad()
-        code_optimizers = []
+        #code_optimizers = []
         if 'decoder' in optimizer:
             optimizer['decoder'].zero_grad()
 
@@ -130,7 +130,7 @@ class DiffusionNeRF(MultiSceneNeRF):
 
         if extra_scene_step > 0:
             #assert len(code_optimizers) > 0
-            prior_grad = None #[code_.grad.data.clone() for code_ in code_list_]
+            prior_grad = [code_.grad.data.clone() for code_ in code_list_]
             cfg = self.train_cfg.copy()
             cfg['n_inverse_steps'] = extra_scene_step
             code, _, _, loss_decoder, loss_dict_decoder, out_rgbs, target_rgbs = self.inverse_code(
@@ -165,8 +165,8 @@ class DiffusionNeRF(MultiSceneNeRF):
 
             if 'decoder' in optimizer:
                 optimizer['decoder'].step()
-            for code_optimizer in code_optimizers:
-                code_optimizer.step()
+            #for code_optimizer in code_optimizers:
+            #    code_optimizer.step()
 
             # ==== save cache ====
             self.save_cache(
