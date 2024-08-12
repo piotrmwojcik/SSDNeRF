@@ -90,10 +90,10 @@ class ShapeNetSRN(Dataset):
             self.test_poses = self.test_intrinsics = None
 
     def load_scenes(self):
+        is_test = 'test' in self.cache_path
+
         if self.cache_path is not None and os.path.exists(self.cache_path):
             scenes = mmcv.load(self.cache_path)
-            print('!!!')
-            print(self.cache_path)
         else:
             data_prefix_list = self.data_prefix if isinstance(self.data_prefix, list) else [self.data_prefix]
             scenes = []
@@ -108,9 +108,10 @@ class ShapeNetSRN(Dataset):
                         image_names = os.listdir(image_dir)
                         image_names.sort()
 
-                        image_multi_dir = os.path.join(sample_dir, 'rgb_multi')
-                        image_multi_names = os.listdir(image_multi_dir)
-                        image_multi_names.sort()
+                        if not is_test:
+                            image_multi_dir = os.path.join(sample_dir, 'rgb_multi')
+                            image_multi_names = os.listdir(image_multi_dir)
+                            image_multi_names.sort()
 
                         image_paths = []
                         poses = []
@@ -121,17 +122,26 @@ class ShapeNetSRN(Dataset):
                             pose_path = os.path.join(
                                 sample_dir, 'pose/' + os.path.splitext(image_name)[0] + '.txt')
                             poses.append(load_pose(pose_path))
-                        for image_name in image_multi_names:
-                            image_multi_paths.append(os.path.join(image_multi_dir, image_name))
-                            pose_path = os.path.join(
-                                sample_dir, 'pose/' + os.path.splitext(image_name)[0] + '.txt')
-                            poses_multi.append(load_pose(pose_path))
-                        scenes.append(dict(
-                            intrinsics=intrinsics,
-                            image_paths=image_paths,
-                            poses=poses,
-                            image_multi_paths=image_multi_paths,
-                            poses_multi=poses_multi))
+                        if not is_test:
+                            for image_name in image_multi_names:
+                                image_multi_paths.append(os.path.join(image_multi_dir, image_name))
+                                pose_path = os.path.join(
+                                    sample_dir, 'pose/' + os.path.splitext(image_name)[0] + '.txt')
+                                poses_multi.append(load_pose(pose_path))
+                        if not is_test:
+                            scenes.append(dict(
+                                intrinsics=intrinsics,
+                                image_paths=image_paths,
+                                poses=poses,
+                                image_multi_paths=image_multi_paths,
+                                poses_multi=poses_multi))
+                        else:
+                            scenes.append(dict(
+                                intrinsics=intrinsics,
+                                image_paths=image_paths,
+                                poses=poses,
+                                image_multi_paths=None,
+                                poses_multi=None))
             scenes = sorted(scenes, key=lambda x: x['image_paths'][0].split('/')[-3])
             if self.cache_path is not None:
                 mmcv.dump(scenes, self.cache_path)
