@@ -91,12 +91,33 @@ class DiffusionNeRF(MultiSceneNeRF):
 
         if 'cond_multi_imgs' in data:
             cond_multi_imgs = data['cond_multi_imgs']
-            print(cond_multi_imgs.shape)
 
         if 'cond_imgs' in data:
             cond_imgs = data['cond_imgs']  # (num_scenes, num_imgs, h, w, 3)
             cond_intrinsics = data['cond_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]
             cond_poses = data['cond_poses']
+
+            sample_img = torch.cat([cond_multi_imgs[0], cond_imgs[0]], dim=0)
+
+            import torch
+            import torchvision
+            from PIL import Image
+
+            tensor = sample_img.permute(0, 3, 1, 2)  # Change shape to (56, 3, 128, 128)
+            grid = torchvision.utils.make_grid(tensor, nrow=8,
+                                               padding=2)  # Arrange images in a grid with 8 images per row
+            ndarr = grid.mul(255).clamp(0,
+                                        255).byte().numpy()  # Convert tensor to a numpy array with pixel values in the 0-255 range
+            ndarr = ndarr.transpose(1, 2, 0)  # Change the channel dimension to the last position (H, W, C)
+            image = Image.fromarray(ndarr)  # Convert the numpy array to a PIL image
+
+            import os
+            output_file = '/data/pwojcik/ssdnerf_image_grid.png'
+            if not os.path.exists(output_file):
+                image.save(output_file)
+
+
+
 
             num_scenes, num_imgs, h, w, _ = cond_imgs.size()
             # (num_scenes, num_imgs, h, w, 3)
