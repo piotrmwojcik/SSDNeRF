@@ -79,7 +79,6 @@ class MultiSceneNeRF(BaseNeRF):
                 loaded = False
                 if cache_load_from is not None:
                     cache_files = os.listdir(cache_load_from)
-                    print(cache_load_from, cache_files, len(cache_files))
                     cache_files.sort()
                     if len(cache_files) > 0:
                         assert len(cache_files) == self.cache_size
@@ -89,22 +88,10 @@ class MultiSceneNeRF(BaseNeRF):
                         loaded = True
                         if rank == 0:
                             mmcv.print_log('Loaded cache files from ' + cache_load_from + '.', 'mmgen')
-                    print('!!!dd!')
-                    print(len(cache_files))
                 if not loaded:
                     if rank == 0:
                         mmcv.print_log('Initialize codes from scratch.', 'mmgen')
                 self.cache_loaded = True
-                print('after init')
-                print(len(self.cache))
-            print('!!!')
-            print(len(self.cache))
-            print(len(data['scene_id']))
-            print(self.cache)
-            for scene_id_single in data['scene_id']:
-                if scene_id_single not in self.cache:
-                    print('!!! ', scene_id_single)
-            print('done')
             cache_list = [self.cache[scene_id_single] for scene_id_single in data['scene_id']]
         elif 'code' in data:
             cache_list = data['code']
