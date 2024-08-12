@@ -223,6 +223,8 @@ class ShapeNetSRN(Dataset):
                     cond_multi_img_paths=DC(cond_multi_img_paths, cpu_only=True))
                 if cond_imgs is not None:
                     results.update(cond_imgs=cond_imgs)
+                if cond_multi_imgs is not None:
+                    results.update(cond_multi_imgs=cond_imgs)
 
             if self.load_test_data and len(test_inds) > 0:
                 test_imgs, test_poses, test_intrinsics, test_img_paths = gather_imgs(test_inds, poses, image_paths)

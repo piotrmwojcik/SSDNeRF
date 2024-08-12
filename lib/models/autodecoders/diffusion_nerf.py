@@ -88,11 +88,8 @@ class DiffusionNeRF(MultiSceneNeRF):
             optimizer['decoder'].zero_grad()
 
         concat_cond = None
-        print('!!!!!')
-        print(data.keys())
 
         if 'cond_multi_imgs' in data:
-            print('!!!')
             cond_multi_imgs = data['cond_multi_imgs']
             print(cond_multi_imgs.shape)
 
