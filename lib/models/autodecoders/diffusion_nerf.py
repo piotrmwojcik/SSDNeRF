@@ -9,6 +9,9 @@ from mmgen.models.architectures.common import get_module_device
 from ...core import eval_psnr, rgetattr, module_requires_grad, get_cam_rays
 from .multiscene_nerf import MultiSceneNeRF
 
+import torchvision
+from PIL import Image
+
 
 @MODELS.register_module()
 class DiffusionNeRF(MultiSceneNeRF):
@@ -99,8 +102,6 @@ class DiffusionNeRF(MultiSceneNeRF):
 
             sample_img = torch.cat([cond_multi_imgs[0], cond_imgs[0]], dim=0)
 
-            import torchvision
-            from PIL import Image
 
             tensor = sample_img.permute(0, 3, 1, 2)  # Change shape to (56, 3, 128, 128)
             grid = torchvision.utils.make_grid(tensor, nrow=8,
