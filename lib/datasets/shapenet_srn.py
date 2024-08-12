@@ -142,6 +142,7 @@ class ShapeNetSRN(Dataset):
     def parse_scene(self, scene_id):
         scene = self.scenes[scene_id]
         image_paths = scene['image_paths']
+        image_multi_paths = scene['image_multi_paths']
         scene_name = image_paths[0].split('/')[-3]
         results = dict(
             scene_id=DC(scene_id, cpu_only=True),
@@ -153,13 +154,14 @@ class ShapeNetSRN(Dataset):
             fx, fy, cx, cy, h, w = scene['intrinsics']
             intrinsics_single = torch.FloatTensor([fx, fy, cx, cy])
             poses = scene['poses']
+            poses_multi = scene['poses_multi']
 
-            def gather_imgs(img_ids):
+            def gather_imgs(img_ids, img_poses, img_paths):
                 imgs_list = [] if self.load_imgs else None
                 poses_list = []
                 img_paths_list = []
                 for img_id in img_ids:
-                    pose = poses[img_id]
+                    pose = img_poses[img_id]
                     c2w = torch.FloatTensor(pose)
                     cam_to_ndc = torch.cat(
                         [c2w[:3, :3], (c2w[:3, 3:] - self.center[:, None]) / self.radius[:, None]], dim=-1)
@@ -168,9 +170,9 @@ class ShapeNetSRN(Dataset):
                             cam_to_ndc,
                             cam_to_ndc.new_tensor([[0.0, 0.0, 0.0, 1.0]])
                         ], dim=-2))
-                    img_paths_list.append(image_paths[img_id])
+                    img_paths_list.append(img_paths[img_id])
                     if self.load_imgs:
-                        img = mmcv.imread(image_paths[img_id], channel_order='rgb')
+                        img = mmcv.imread(img_paths[img_id], channel_order='rgb')
                         img = torch.from_numpy(img.astype(np.float32) / 255)  # (h, w, 3)
                         imgs_list.append(img)
                 poses_list = torch.stack(poses_list, dim=0)  # (n, 4, 4)
@@ -196,20 +198,30 @@ class ShapeNetSRN(Dataset):
                 test_inds.remove(cond_ind)
 
             if self.load_cond_data and len(cond_inds) > 0:
-                cond_imgs, cond_poses, cond_intrinsics, cond_img_paths = gather_imgs(cond_inds)
+                cond_imgs, cond_poses, cond_intrinsics, cond_img_paths = gather_imgs(cond_inds, poses, image_paths)
+                cond_multi_imgs, cond_multi_poses, cond_multi_intrinsics, cond_multi_img_paths = gather_imgs(cond_inds,
+                                                                                                             poses_multi, image_multi_paths)
                 results.update(
                     cond_poses=cond_poses,
                     cond_intrinsics=cond_intrinsics,
-                    cond_img_paths=DC(cond_img_paths, cpu_only=True))
+                    cond_img_paths=DC(cond_img_paths, cpu_only=True),
+                    cond_multi_poses=cond_multi_poses,
+                    cond_multi_intrinsics=cond_multi_intrinsics,
+                    cond_multi_img_paths=DC(cond_multi_img_paths, cpu_only=True))
                 if cond_imgs is not None:
                     results.update(cond_imgs=cond_imgs)
 
             if self.load_test_data and len(test_inds) > 0:
-                test_imgs, test_poses, test_intrinsics, test_img_paths = gather_imgs(test_inds)
+                test_imgs, test_poses, test_intrinsics, test_img_paths = gather_imgs(test_inds, poses, image_paths)
+                test_multi_imgs, test_multi_poses, test_multi_intrinsics, test_multi_img_paths = gather_imgs(cond_inds,
+                                                                                                             poses_multi, image_multi_paths)
                 results.update(
                     test_poses=test_poses,
                     test_intrinsics=test_intrinsics,
-                    test_img_paths=DC(test_img_paths, cpu_only=True))
+                    test_img_paths=DC(test_img_paths, cpu_only=True),
+                    test_multi_img=test_multi_imgs,
+                    test_multi_intrinsics=test_multi_intrinsics,
+                    test_multi_img_paths=DC(test_multi_img_paths, cpu_only=True))
                 if test_imgs is not None:
                     results.update(test_imgs=test_imgs)
 
