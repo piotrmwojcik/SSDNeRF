@@ -9,9 +9,6 @@ from mmgen.models.architectures.common import get_module_device
 from ...core import eval_psnr, rgetattr, module_requires_grad, get_cam_rays
 from .multiscene_nerf import MultiSceneNeRF
 
-import torchvision
-from PIL import Image
-
 
 @MODELS.register_module()
 class DiffusionNeRF(MultiSceneNeRF):
@@ -99,26 +96,6 @@ class DiffusionNeRF(MultiSceneNeRF):
             cond_imgs = data['cond_imgs']  # (num_scenes, num_imgs, h, w, 3)
             cond_intrinsics = data['cond_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]
             cond_poses = data['cond_poses']
-
-            sample_img = torch.cat([cond_multi_imgs[0], cond_imgs[0]], dim=0)
-
-
-            tensor = sample_img.permute(0, 3, 1, 2)  # Change shape to (56, 3, 128, 128)
-            grid = torchvision.utils.make_grid(tensor, nrow=8,
-                                               padding=2)  # Arrange images in a grid with 8 images per row
-            ndarr = grid.mul(255).clamp(0,
-                                        255).byte().cpu().numpy()  # Convert tensor to a numpy array with pixel values in the 0-255 range
-            ndarr = ndarr.transpose(1, 2, 0)  # Change the channel dimension to the last position (H, W, C)
-            image = Image.fromarray(ndarr)  # Convert the numpy array to a PIL image
-
-            import os
-            output_file = '/data/pwojcik/ssdnerf_image_grid.png'
-            if not os.path.exists(output_file):
-                image.save(output_file)
-
-
-
-
             num_scenes, num_imgs, h, w, _ = cond_imgs.size()
             # (num_scenes, num_imgs, h, w, 3)
             cond_rays_o, cond_rays_d = get_cam_rays(cond_poses, cond_intrinsics, h, w)
