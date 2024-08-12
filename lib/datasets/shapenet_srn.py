@@ -174,6 +174,7 @@ class ShapeNetSRN(Dataset):
                 poses_list = []
                 img_paths_list = []
                 for img_id in img_ids:
+                    print(len(img_poses), img_id)
                     pose = img_poses[img_id]
                     c2w = torch.FloatTensor(pose)
                     cam_to_ndc = torch.cat(
