@@ -1,9 +1,9 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond_regular_T1'
+name = 'ssdnerf_mplane_cars_uncond_regular_from_ds'
 
-DATA_PATH = '/net/tscratch/people/plgmarzol/SSDNeRF_data/shapenet'
+DATA_PATH = '/data_ssd/pwojcik/shapenet2'
 
-cache_path = os.getcwd()
+cache_path = '/data_ssd/pwojcik/shapenet2'
 cache_path = os.path.dirname(cache_path)
 cache_path = os.path.join(cache_path, "SSDNeRF_data", "shapenet")
 if not os.path.exists(cache_path):
@@ -139,7 +139,7 @@ evaluation = [
         viz_step=32,
         metrics=dict(
             type='FIDKID',
-            num_images=704 * 251,
+            num_images=71 * 251,
             inception_pkl='work_dirs/cache/cars_test_inception_stylegan.pkl',
             inception_args=dict(
                 type='StyleGAN',
