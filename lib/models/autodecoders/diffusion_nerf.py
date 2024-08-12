@@ -107,7 +107,7 @@ class DiffusionNeRF(MultiSceneNeRF):
             grid = torchvision.utils.make_grid(tensor, nrow=8,
                                                padding=2)  # Arrange images in a grid with 8 images per row
             ndarr = grid.mul(255).clamp(0,
-                                        255).byte().numpy()  # Convert tensor to a numpy array with pixel values in the 0-255 range
+                                        255).byte().cpu().numpy()  # Convert tensor to a numpy array with pixel values in the 0-255 range
             ndarr = ndarr.transpose(1, 2, 0)  # Change the channel dimension to the last position (H, W, C)
             image = Image.fromarray(ndarr)  # Convert the numpy array to a PIL image
 
