@@ -140,8 +140,8 @@ class ShapeNetSRN(Dataset):
                                 intrinsics=intrinsics,
                                 image_paths=image_paths,
                                 poses=poses,
-                                image_multi_paths=None,
-                                poses_multi=None))
+                                image_multi_paths=[],
+                                poses_multi=[]))
             scenes = sorted(scenes, key=lambda x: x['image_paths'][0].split('/')[-3])
             if self.cache_path is not None:
                 mmcv.dump(scenes, self.cache_path)
