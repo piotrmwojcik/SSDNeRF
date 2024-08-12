@@ -152,7 +152,7 @@ class MultiSceneNeRF(BaseNeRF):
                     code_=code_single_.data,
                     density_grid=density_grid[ind],
                     density_bitfield=density_bitfield[ind]),
-                optimizer=code_optimizers[ind].state_dict())
+                optimizer=None)
             if self.cache is not None:
                 if self.cache[scene_id_single] is None:
                     self.cache[scene_id_single] = out_dict_to(
