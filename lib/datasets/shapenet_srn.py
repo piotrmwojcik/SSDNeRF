@@ -195,19 +195,16 @@ class ShapeNetSRN(Dataset):
                 return imgs_list, poses_list, intrinsics, img_paths_list
 
             num_imgs = len(image_paths)
+            cond_multi_imgs = len(image_multi_paths)
             if self.specific_observation_idcs is None:
                 if self.num_train_imgs >= 0:
                     num_train_imgs = self.num_train_imgs
-                    print('AAAAA')
                 else:
                     num_train_imgs = num_imgs - self.num_test_imgs
-                    print('BBBBB')
                 if self.random_test_imgs:
                     cond_inds = random.sample(range(num_imgs), num_train_imgs)
-                    print('CCCCC')
                 else:
                     cond_inds = np.round(np.linspace(0, num_imgs - 1, num_train_imgs)).astype(np.int64)
-                    print('DDDD')
             else:
                 cond_inds = self.specific_observation_idcs
             test_inds = list(range(num_imgs))
@@ -217,7 +214,7 @@ class ShapeNetSRN(Dataset):
             if self.load_cond_data and len(cond_inds) > 0:
                 cond_imgs, cond_poses, cond_intrinsics, cond_img_paths = gather_imgs(cond_inds, poses, image_paths)
                 cond_multi_imgs, cond_multi_poses, cond_multi_intrinsics, cond_multi_img_paths = \
-                    gather_imgs(cond_inds, poses_multi, image_multi_paths)
+                    gather_imgs(cond_multi_imgs, poses_multi, image_multi_paths)
                 results.update(
                     cond_poses=cond_poses,
                     cond_intrinsics=cond_intrinsics,
