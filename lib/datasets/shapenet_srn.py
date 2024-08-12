@@ -105,17 +105,31 @@ class ShapeNetSRN(Dataset):
                         image_dir = os.path.join(sample_dir, 'rgb')
                         image_names = os.listdir(image_dir)
                         image_names.sort()
+
+                        image_multi_dir = os.path.join(sample_dir, 'rgb_multi')
+                        image_multi_names = os.listdir(image_multi_dir)
+                        image_multi_names.sort()
+
                         image_paths = []
                         poses = []
+                        image_multi_paths = []
+                        poses_multi = []
                         for image_name in image_names:
                             image_paths.append(os.path.join(image_dir, image_name))
                             pose_path = os.path.join(
                                 sample_dir, 'pose/' + os.path.splitext(image_name)[0] + '.txt')
                             poses.append(load_pose(pose_path))
+                        for image_name in image_multi_names:
+                            image_multi_paths.append(os.path.join(image_multi_dir, image_name))
+                            pose_path = os.path.join(
+                                sample_dir, 'pose/' + os.path.splitext(image_name)[0] + '.txt')
+                            poses_multi.append(load_pose(pose_path))
                         scenes.append(dict(
                             intrinsics=intrinsics,
                             image_paths=image_paths,
-                            poses=poses))
+                            poses=poses,
+                            image_multi_paths=image_multi_paths,
+                            poses_multi=poses_multi))
             scenes = sorted(scenes, key=lambda x: x['image_paths'][0].split('/')[-3])
             if self.cache_path is not None:
                 mmcv.dump(scenes, self.cache_path)
@@ -128,8 +142,6 @@ class ShapeNetSRN(Dataset):
     def parse_scene(self, scene_id):
         scene = self.scenes[scene_id]
         image_paths = scene['image_paths']
-        print('!!!!')
-        print(image_paths)
         scene_name = image_paths[0].split('/')[-3]
         results = dict(
             scene_id=DC(scene_id, cpu_only=True),
