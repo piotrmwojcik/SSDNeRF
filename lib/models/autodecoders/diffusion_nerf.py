@@ -97,10 +97,8 @@ class DiffusionNeRF(MultiSceneNeRF):
             cond_intrinsics = data['cond_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]
             cond_poses = data['cond_poses']
 
-            import torch
             sample_img = torch.cat([cond_multi_imgs[0], cond_imgs[0]], dim=0)
 
-            import torch
             import torchvision
             from PIL import Image
 
