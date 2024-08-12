@@ -92,6 +92,8 @@ class ShapeNetSRN(Dataset):
     def load_scenes(self):
         if self.cache_path is not None and os.path.exists(self.cache_path):
             scenes = mmcv.load(self.cache_path)
+            print('!!!')
+            print(self.cache_path)
         else:
             data_prefix_list = self.data_prefix if isinstance(self.data_prefix, list) else [self.data_prefix]
             scenes = []
