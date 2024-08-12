@@ -174,7 +174,6 @@ class ShapeNetSRN(Dataset):
                 poses_list = []
                 img_paths_list = []
                 for img_id in img_ids:
-                    print(len(img_poses), img_id)
                     pose = img_poses[img_id]
                     c2w = torch.FloatTensor(pose)
                     cam_to_ndc = torch.cat(
@@ -227,7 +226,7 @@ class ShapeNetSRN(Dataset):
 
             if self.load_test_data and len(test_inds) > 0:
                 test_imgs, test_poses, test_intrinsics, test_img_paths = gather_imgs(test_inds, poses, image_paths)
-                test_multi_imgs, test_multi_poses, test_multi_intrinsics, test_multi_img_paths = gather_imgs(cond_inds,
+                test_multi_imgs, test_multi_poses, test_multi_intrinsics, test_multi_img_paths = gather_imgs(test_inds,
                                                                                                              poses_multi, image_multi_paths)
                 results.update(
                     test_poses=test_poses,
