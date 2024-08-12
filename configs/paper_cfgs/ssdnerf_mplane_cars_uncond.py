@@ -3,9 +3,9 @@ name = 'ssdnerf_mplane_cars_uncond_regular_from_ds'
 
 DATA_PATH = '/data_ssd/pwojcik/shapenet2'
 
-cache_path = '/data_ssd/pwojcik/shapenet2'
+cache_path = os.getcwd()
 cache_path = os.path.dirname(cache_path)
-cache_path = os.path.join(cache_path, "SSDNeRF_data", "shapenet")
+cache_path = os.path.join(cache_path, "SSDNeRF_data", "shapenet2")
 if not os.path.exists(cache_path):
     os.makedirs(cache_path)
 
