@@ -79,6 +79,7 @@ class MultiSceneNeRF(BaseNeRF):
                 loaded = False
                 if cache_load_from is not None:
                     cache_files = os.listdir(cache_load_from)
+                    print(cache_files)
                     cache_files.sort()
                     if len(cache_files) > 0:
                         assert len(cache_files) == self.cache_size
