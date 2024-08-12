@@ -226,15 +226,13 @@ class ShapeNetSRN(Dataset):
 
             if self.load_test_data and len(test_inds) > 0:
                 test_imgs, test_poses, test_intrinsics, test_img_paths = gather_imgs(test_inds, poses, image_paths)
-                test_multi_imgs, test_multi_poses, test_multi_intrinsics, test_multi_img_paths = gather_imgs(test_inds,
-                                                                                                             poses_multi, image_multi_paths)
                 results.update(
                     test_poses=test_poses,
                     test_intrinsics=test_intrinsics,
                     test_img_paths=DC(test_img_paths, cpu_only=True),
-                    test_multi_img=test_multi_imgs,
-                    test_multi_intrinsics=test_multi_intrinsics,
-                    test_multi_img_paths=DC(test_multi_img_paths, cpu_only=True))
+                    test_multi_img=[],
+                    test_multi_intrinsics=[],
+                    test_multi_img_paths=DC([], cpu_only=True))
                 if test_imgs is not None:
                     results.update(test_imgs=test_imgs)
 
