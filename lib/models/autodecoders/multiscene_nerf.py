@@ -96,7 +96,7 @@ class MultiSceneNeRF(BaseNeRF):
             print(len(self.cache))
             print(len(data['scene_id']))
             for scene_id_single in data['scene_id']:
-                if scene_id_single not in data['scene_id']:
+                if scene_id_single not in self.cache:
                     print('!!! ', scene_id_single)
             print('done')
             cache_list = [self.cache[scene_id_single] for scene_id_single in data['scene_id']]
