@@ -92,7 +92,6 @@ class ShapeNetSRN(Dataset):
     def load_scenes(self):
         if self.cache_path is not None and os.path.exists(self.cache_path):
             scenes = mmcv.load(self.cache_path)
-            print('dupa')
         else:
             data_prefix_list = self.data_prefix if isinstance(self.data_prefix, list) else [self.data_prefix]
             scenes = []
@@ -131,8 +130,6 @@ class ShapeNetSRN(Dataset):
                             poses=poses,
                             image_multi_paths=image_multi_paths,
                             poses_multi=poses_multi))
-                        print('!!!')
-                        print(scenes[-1].keys())
             scenes = sorted(scenes, key=lambda x: x['image_paths'][0].split('/')[-3])
             if self.cache_path is not None:
                 mmcv.dump(scenes, self.cache_path)
