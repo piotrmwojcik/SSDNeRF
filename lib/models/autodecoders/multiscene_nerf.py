@@ -92,6 +92,9 @@ class MultiSceneNeRF(BaseNeRF):
                     if rank == 0:
                         mmcv.print_log('Initialize codes from scratch.', 'mmgen')
                 self.cache_loaded = True
+            print('!!!')
+            print(len(self.cache))
+            print(len(data['scene_id']))
             cache_list = [self.cache[scene_id_single] for scene_id_single in data['scene_id']]
         elif 'code' in data:
             cache_list = data['code']
