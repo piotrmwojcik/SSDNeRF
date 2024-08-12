@@ -90,6 +90,7 @@ class MultiSceneNeRF(BaseNeRF):
                             mmcv.print_log('Loaded cache files from ' + cache_load_from + '.', 'mmgen')
                 if not loaded:
                     if rank == 0:
+                        print('AAA')
                         mmcv.print_log('Initialize codes from scratch.', 'mmgen')
                 self.cache_loaded = True
             cache_list = [self.cache[scene_id_single] for scene_id_single in data['scene_id']]
