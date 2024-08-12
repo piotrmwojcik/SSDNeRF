@@ -92,6 +92,10 @@ class DiffusionNeRF(MultiSceneNeRF):
         if 'cond_multi_imgs' in data:
             cond_multi_imgs = data['cond_multi_imgs']
 
+        print('!!!')
+        print(code.shape)
+        print(cond_multi_imgs.shape)
+
         if 'cond_imgs' in data:
             cond_imgs = data['cond_imgs']  # (num_scenes, num_imgs, h, w, 3)
             cond_intrinsics = data['cond_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]

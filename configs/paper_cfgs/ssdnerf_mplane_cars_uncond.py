@@ -14,7 +14,7 @@ model = dict(
     code_size=(3, 6, 128, 128),
     code_reshape=(18, 128, 128),
     code_activation=dict(
-        type='TanhCode',
+        type='IdentityCode',
         scale=2),
     grid_size=64,
     diffusion=dict(
@@ -70,7 +70,7 @@ model = dict(
     cache_size=210)  # number of training scenes
 
 save_interval = 5000
-eval_interval = 20000
+eval_interval = 5000
 code_dir = 'cache/' + name + '/code'
 work_dir = 'work_dirs/' + name
 
