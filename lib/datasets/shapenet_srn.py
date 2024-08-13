@@ -205,6 +205,7 @@ class ShapeNetSRN(Dataset):
                     print('!!!!')
                     cond_inds = random.sample(range(num_imgs), num_train_imgs)
                 else:
+                    print('!!!!BBBB')
                     cond_inds = np.round(np.linspace(0, num_imgs - 1, num_train_imgs)).astype(np.int64)
             else:
                 cond_inds = self.specific_observation_idcs
