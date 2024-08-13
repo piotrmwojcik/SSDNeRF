@@ -81,8 +81,8 @@ class DiffusionNeRF(MultiSceneNeRF):
                 print('!!!')
                 print(code_list_[i].shape)
                 print(cond_multi_imgs.shape)
-                code_list_[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
-            code = self.code_activation(torch.stack(code_list_, dim=0), update_stats=True)
+                #code_list_[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
+            code = torch.stack(code_list_, dim=0)
         else:
             assert 'code' in data
             code, density_grid, density_bitfield = self.load_scene(
