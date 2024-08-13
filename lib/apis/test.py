@@ -25,6 +25,7 @@ def evaluate_3d(model, dataloader, metrics=None,
     batch_size_list = []
     # sampling fake images and directly send them to metrics
     for i, data in enumerate(dataloader):
+        print('!!! ', i)
         sample_kwargs_ = deepcopy(sample_kwargs)
         if viz_dir is not None and i % viz_step == 0:
             sample_kwargs_.update(viz_dir=viz_dir)
