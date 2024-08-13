@@ -195,6 +195,8 @@ class ShapeNetSRN(Dataset):
                 return imgs_list, poses_list, intrinsics, img_paths_list
 
             num_imgs = len(image_paths)
+            print('!!!')
+            print(num_imgs)
             if self.specific_observation_idcs is None:
                 if self.num_train_imgs >= 0:
                     num_train_imgs = self.num_train_imgs

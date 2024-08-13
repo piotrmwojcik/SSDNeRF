@@ -233,9 +233,6 @@ def main():
 
         data_loader = build_dataloader(dataset, **test_loader_cfg)
 
-        print('!!!')
-        print(len(dataset))
-
         log_vars = evaluate_3d(
             model, data_loader, metrics=metrics,
             feed_batch_size=eval_cfg.get('feed_batch_size', 32),
