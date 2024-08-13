@@ -73,7 +73,7 @@ class DiffusionNeRF(MultiSceneNeRF):
         if 'optimizer' in self.train_cfg:
             code_list_, code_optimizers, density_grid, density_bitfield = self.load_cache(data)
             for i in range(len(code_list_)):
-                code_list_[i] = code_list_[i].detach()
+                code_list_[i].requires_grad = False
             code = self.code_activation(torch.stack(code_list_, dim=0), update_stats=True)
         else:
             assert 'code' in data
@@ -96,7 +96,7 @@ class DiffusionNeRF(MultiSceneNeRF):
         for i in range(cond_multi_imgs.shape[0]):
             code[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
 
-        code = code.detach()
+        #code = code.detach()
 
         if 'cond_imgs' in data:
             cond_imgs = data['cond_imgs']  # (num_scenes, num_imgs, h, w, 3)
