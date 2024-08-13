@@ -44,6 +44,7 @@ def evaluate_3d(model, dataloader, metrics=None,
             real_imgs = None
             for metric in metrics:
                 if 'test_imgs' in data and not isinstance(metric, (FID, IS)) and real_imgs is None:
+                    print('!!!!!!')
                     real_imgs = data['test_imgs'].permute(0, 1, 4, 2, 3)
                     real_imgs = real_imgs.reshape(-1, *real_imgs.shape[2:]).split(feed_batch_size, dim=0)
                 for batch_id, batch_imgs in enumerate(pred_imgs):
