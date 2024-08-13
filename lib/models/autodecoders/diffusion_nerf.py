@@ -77,6 +77,7 @@ class DiffusionNeRF(MultiSceneNeRF):
             if 'cond_multi_imgs' in data:
                 cond_multi_imgs = data['cond_multi_imgs']
 
+            #img = cond_multi_imgs
             #for i in range(len(code_list_)):
                 #code_list_[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
             code = torch.stack(code_list_, dim=0)
@@ -94,9 +95,6 @@ class DiffusionNeRF(MultiSceneNeRF):
             optimizer['decoder'].zero_grad()
 
         concat_cond = None
-
-
-
 
         #code = code.detach()
 
