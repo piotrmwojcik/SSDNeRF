@@ -94,6 +94,8 @@ class DiffusionNeRF(MultiSceneNeRF):
         for i in range(cond_multi_imgs.shape[0]):
             code[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
 
+        code.requires_grad = False
+
         if 'cond_imgs' in data:
             cond_imgs = data['cond_imgs']  # (num_scenes, num_imgs, h, w, 3)
             cond_intrinsics = data['cond_intrinsics']  # (num_scenes, num_imgs, 4), in [fx, fy, cx, cy]
@@ -228,7 +230,7 @@ class DiffusionNeRF(MultiSceneNeRF):
                         code = self.code_activation(code_)
                         loss, log_vars = diffusion(self.code_diff_pr(code), return_loss=True, cfg=self.test_cfg)
                         loss.backward()
-                        code_optimizer.step()
+                        #code_optimizer.step()
                         if code_scheduler is not None:
                             code_scheduler.step()
                         if show_pbar:
