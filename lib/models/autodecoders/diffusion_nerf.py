@@ -74,6 +74,14 @@ class DiffusionNeRF(MultiSceneNeRF):
             code_list_, code_optimizers, density_grid, density_bitfield = self.load_cache(data)
             code_list_ = [c.detach() for c in code_list_]
 
+            if 'cond_multi_imgs' in data:
+                cond_multi_imgs = data['cond_multi_imgs']
+
+            for i in range(len(code_list_)):
+                print('!!!')
+                print(code_list_[i].shape)
+                print(cond_multi_imgs.shape)
+                code_list_[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
             code = self.code_activation(torch.stack(code_list_, dim=0), update_stats=True)
         else:
             assert 'code' in data
@@ -90,11 +98,8 @@ class DiffusionNeRF(MultiSceneNeRF):
 
         concat_cond = None
 
-        if 'cond_multi_imgs' in data:
-            cond_multi_imgs = data['cond_multi_imgs']
 
-        #for i in range(len(code_list_)):
-        #    code_list_[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
+
 
         #code = code.detach()
 
