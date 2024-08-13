@@ -93,8 +93,8 @@ class DiffusionNeRF(MultiSceneNeRF):
         if 'cond_multi_imgs' in data:
             cond_multi_imgs = data['cond_multi_imgs']
 
-        for i in range(cond_multi_imgs.shape[0]):
-            code[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
+        for i in range(len(code_list_)):
+            code_list_[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
 
         #code = code.detach()
 
