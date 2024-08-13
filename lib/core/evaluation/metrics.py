@@ -198,6 +198,9 @@ class FIDKID(FID):
             self.real_cov = np.cov(feats_np, rowvar=False)
 
         fake_feats = torch.cat(self.fake_feats, dim=0)
+        print('!!!')
+        print(fake_feats.shape[0])
+        print(self.num_images)
         assert fake_feats.shape[0] >= self.num_images
         fake_feats = fake_feats[:self.num_images]
         fake_feats_np = fake_feats.numpy()
