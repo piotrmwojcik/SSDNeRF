@@ -201,6 +201,7 @@ class ShapeNetSRN(Dataset):
                 else:
                     num_train_imgs = num_imgs - self.num_test_imgs
                 if self.random_test_imgs:
+                    print('!!!!')
                     cond_inds = random.sample(range(num_imgs), num_train_imgs)
                 else:
                     cond_inds = np.round(np.linspace(0, num_imgs - 1, num_train_imgs)).astype(np.int64)
