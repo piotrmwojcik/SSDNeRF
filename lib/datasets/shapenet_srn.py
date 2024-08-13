@@ -210,7 +210,7 @@ class ShapeNetSRN(Dataset):
             for cond_ind in cond_inds:
                 test_inds.remove(cond_ind)
 
-            if self.load_cond_data and len(cond_inds) > 0:
+            if self.load_cond_data and self.load_images and len(cond_inds) > 0:
                 cond_imgs, cond_poses, cond_intrinsics, cond_img_paths = gather_imgs(cond_inds, poses, image_paths)
                 cond_multi_imgs, cond_multi_poses, cond_multi_intrinsics, cond_multi_img_paths = \
                     gather_imgs(list(range(6)), poses_multi, image_multi_paths)

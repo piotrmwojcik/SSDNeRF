@@ -109,7 +109,6 @@ data = dict(
         cache_path= f'{cache_path}/cars_train_cache.pkl'),
     val_uncond=dict(
         type=dataset_type,
-        load_test_data=True,
         data_prefix= f'{DATA_PATH}/cars_test',
         load_imgs=False,
         num_test_imgs=71,
