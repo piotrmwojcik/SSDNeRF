@@ -38,6 +38,9 @@ def evaluate_3d(model, dataloader, metrics=None,
                 log_vars[k] = [outputs_dict['log_vars'][k]]
         batch_size_list.append(outputs_dict['num_samples'])
 
+        print('!!!')
+        print(batch_size_list)
+
         if metrics is not None and len(metrics) > 0:
             pred_imgs = outputs_dict['pred_imgs'].reshape(
                 -1, *outputs_dict['pred_imgs'].shape[2:]).split(feed_batch_size, dim=0)
