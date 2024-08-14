@@ -1,5 +1,5 @@
 import os
-name = 'ssdnerf_mplane_cars_uncond_regular_from_ds'
+name = 'ssdnerf_mplane_cars_uncond_regular_from_ds_bd'
 
 DATA_PATH = '/data_ssd/pwojcik/shapenet2'
 
@@ -47,11 +47,11 @@ model = dict(
     decoder=dict(
         type='TriPlaneDecoder',
         interp_mode='bilinear',
-        base_layers=[6 * 5, 64],
-        density_layers=[64, 1],
-        color_layers=[64, 3],
+        base_layers=[6 * 5, 84],
+        density_layers=[84, 1],
+        color_layers=[84, 3],
         use_dir_enc=True,
-        dir_layers=[16, 64],
+        dir_layers=[16, 84],
         activation='silu',
         sigma_activation='trunc_exp',
         sigmoid_saturation=0.001,
