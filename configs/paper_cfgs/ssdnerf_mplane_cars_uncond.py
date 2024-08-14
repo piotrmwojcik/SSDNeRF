@@ -176,10 +176,10 @@ custom_hooks = [
     dict(
         type='ModelUpdaterHook',
         step=[2000, 100000, 500000],
-        cfgs=[{'train_cfg.extra_scene_step': 3},  # decay schedule of K_in & triplane lr
+        cfgs=[{'train_cfg.extra_scene_step': 0},  # decay schedule of K_in & triplane lr
               {'train_cfg.extra_scene_step': 1,
                'diffusion.ddpm_loss.freeze_norm': True},
-              {'train_cfg.extra_scene_step': 1,
+              {'train_cfg.extra_scene_step': 0,
                'train_cfg.optimizer.lr': 2.5e-3,
                'diffusion.ddpm_loss.freeze_norm': True,
                'pixel_loss.loss_weight': 10.0,

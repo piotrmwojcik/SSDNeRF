@@ -135,7 +135,6 @@ class DiffusionNeRF(MultiSceneNeRF):
                 optimizer[key].step()
 
         if extra_scene_step > 0:
-            print('!!!!!')
             #assert len(code_optimizers) > 0
             prior_grad = None#[code_.grad.data.clone() for code_ in code_list_]
             cfg = self.train_cfg.copy()
