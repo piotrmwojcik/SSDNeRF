@@ -77,11 +77,8 @@ class DiffusionNeRF(MultiSceneNeRF):
             if 'cond_multi_imgs' in data:
                 cond_multi_imgs = data['cond_multi_imgs']
 
-            #cond_multi_imgs = cond_multi_imgs.
-
-            print('!!!!')
-            print(code_list_[0].shape)
-            print(cond_multi_imgs.shape)
+            for m in range(len(code_list_)):
+                code_list_[m] = cond_multi_imgs[m].permute(0, 3, 1, 2).view(3, 6, 128, 128)
 
             #for i in range(len(code_list_)):
                 #code_list_[i] = cond_multi_imgs[i].permute(3, 0, 1, 2)
