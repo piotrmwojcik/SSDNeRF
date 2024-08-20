@@ -231,10 +231,9 @@ class DiffusionNeRF(MultiSceneNeRF):
             return rescaled_tensor
         for step_id, code in enumerate(code_list):
             code = self.code_diff_pr_inv(code)
-            code = scale_tensor(code)
+            for i in range(code.shape[0]):
+                code[i, :, :, :] = scale_tensor(code[i, :, :, :])
             n_inverse_steps = self.test_cfg.get('n_inverse_steps', 0)
-            print('!!!')
-            print(n_inverse_steps)
             if n_inverse_steps > 0 and step_id == (len(code_list) - 1):
                 with module_requires_grad(diffusion, False), torch.enable_grad():
                     code_ = self.code_activation.inverse(code).requires_grad_(True)
