@@ -220,6 +220,8 @@ class DiffusionNeRF(MultiSceneNeRF):
         code_list = code_out if isinstance(code_out, list) else [code_out]
         density_grid_list = []
         density_bitfield_list = []
+        print('!!!!')
+        print('dupa')
         for step_id, code in enumerate(code_list):
             code = self.code_diff_pr_inv(code)
             n_inverse_steps = self.test_cfg.get('n_inverse_steps', 0)
