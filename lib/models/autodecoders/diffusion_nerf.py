@@ -220,8 +220,6 @@ class DiffusionNeRF(MultiSceneNeRF):
         code_list = code_out if isinstance(code_out, list) else [code_out]
         density_grid_list = []
         density_bitfield_list = []
-        print('!!!!')
-        print('dupa')
 
         def scale_tensor(tensor):
             min_val = torch.min(tensor)
@@ -235,6 +233,8 @@ class DiffusionNeRF(MultiSceneNeRF):
             code = self.code_diff_pr_inv(code)
             code = scale_tensor(code)
             n_inverse_steps = self.test_cfg.get('n_inverse_steps', 0)
+            print('!!!')
+            print(n_inverse_steps)
             if n_inverse_steps > 0 and step_id == (len(code_list) - 1):
                 with module_requires_grad(diffusion, False), torch.enable_grad():
                     code_ = self.code_activation.inverse(code).requires_grad_(True)
