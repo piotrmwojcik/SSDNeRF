@@ -222,8 +222,18 @@ class DiffusionNeRF(MultiSceneNeRF):
         density_bitfield_list = []
         print('!!!!')
         print('dupa')
+
+        def scale_tensor(tensor):
+            min_val = torch.min(tensor)
+            max_val = torch.max(tensor)
+
+            # Rescale the tensor to the range [0, 1]
+            rescaled_tensor = (tensor - min_val) / (max_val - min_val)
+
+            return rescaled_tensor
         for step_id, code in enumerate(code_list):
             code = self.code_diff_pr_inv(code)
+            code = scale_tensor(code)
             n_inverse_steps = self.test_cfg.get('n_inverse_steps', 0)
             if n_inverse_steps > 0 and step_id == (len(code_list) - 1):
                 with module_requires_grad(diffusion, False), torch.enable_grad():
