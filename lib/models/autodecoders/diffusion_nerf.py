@@ -138,6 +138,8 @@ class DiffusionNeRF(MultiSceneNeRF):
                 density_bitfield=density_bitfield,
                 code_optimizer=code_optimizers,
                 prior_grad=prior_grad)
+            print('!!!!')
+            print(code.shape)
             for k, v in loss_dict_decoder.items():
                 log_vars.update({k: float(v)})
         else:
