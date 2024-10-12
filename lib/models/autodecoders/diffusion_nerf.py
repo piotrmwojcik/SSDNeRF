@@ -1,3 +1,5 @@
+import time
+
 import torch
 import mmcv
 
@@ -123,6 +125,7 @@ class DiffusionNeRF(MultiSceneNeRF):
             if key.startswith('diffusion'):
                 optimizer[key].step()
 
+        start = time.time()
         if extra_scene_step > 0:
             assert len(code_optimizers) > 0
             prior_grad = [code_.grad.data.clone() for code_ in code_list_]
@@ -139,6 +142,8 @@ class DiffusionNeRF(MultiSceneNeRF):
                 log_vars.update({k: float(v)})
         else:
             prior_grad = None
+        end = time.time()
+        print(f"inverse_code took {round(end - start, 2)} seconds")
 
         if 'decoder' in optimizer or len(code_optimizers) > 0:
             if len(code_optimizers) > 0:
