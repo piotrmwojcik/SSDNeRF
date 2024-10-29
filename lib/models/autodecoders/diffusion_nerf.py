@@ -120,6 +120,7 @@ class DiffusionNeRF(MultiSceneNeRF):
             loss_diffusion, log_vars = diffusion(
                 self.code_diff_pr(code), concat_cond=concat_cond, return_loss=True,
                 x_t_detach=x_t_detach, cfg=self.train_cfg)
+        print('loss diffusion: ', loss_diffusion)
         loss_diffusion.backward()
         for key in optimizer.keys():
             if key.startswith('diffusion'):
