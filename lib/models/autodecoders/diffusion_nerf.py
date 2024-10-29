@@ -124,6 +124,11 @@ class DiffusionNeRF(MultiSceneNeRF):
         loss_diffusion.backward()
         for key in optimizer.keys():
             if key.startswith('diffusion'):
+                # Print the current learning rate for the 'diffusion' optimizer
+                for param_group in optimizer[key].param_groups:
+                    print(f"Learning rate for {key}: {param_group['lr']}")
+
+                # Perform optimization step
                 optimizer[key].step()
 
         start = time.time()
