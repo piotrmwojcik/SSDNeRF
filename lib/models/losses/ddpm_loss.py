@@ -109,6 +109,8 @@ class DDPMMSELossMod(DDPMLossMod):
                 norm_factor = reduce_mean(norm_factor)
                 self.norm_factor[:] = (1 - self.momentum) * self.norm_factor \
                                       + self.momentum * norm_factor
+            print('!!!!')
+            print(loss, self.norm_factor, loss / self.norm_factor)
             loss = loss / self.norm_factor
         return loss
 

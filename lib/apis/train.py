@@ -144,7 +144,7 @@ def train_model(model,
             cfg.work_dir, cfg.checkpoint_config.get('out_dir', 'ckpt'))
 
     # register hooks
-    runner.register_training_hooks(cfg.lr_config, optimizer_config,
+    runner.register_training_hooks(cfg. lr_config, optimizer_config,
                                    cfg.checkpoint_config, cfg.log_config,
                                    cfg.get('momentum_config', None))
 
