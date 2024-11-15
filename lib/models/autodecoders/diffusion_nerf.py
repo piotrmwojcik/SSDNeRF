@@ -146,6 +146,8 @@ class DiffusionNeRF(MultiSceneNeRF):
                 prior_grad=prior_grad)
             print('!!!!')
             print(code.shape)
+            num_params = sum(p.numel() for p in decoder.parameters())
+            print("Total number of decoder parameters:", num_params)
             for k, v in loss_dict_decoder.items():
                 log_vars.update({k: float(v)})
         else:
