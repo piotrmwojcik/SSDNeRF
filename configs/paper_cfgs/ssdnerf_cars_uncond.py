@@ -150,7 +150,7 @@ evaluation = [
 
 total_iters = 1000000  # K_out (outer loop iterations)
 log_config = dict(
-    interval=50,
+    interval=5,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook'),
