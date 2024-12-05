@@ -67,6 +67,11 @@ class DiffusionNeRF(MultiSceneNeRF):
 
     def train_step(self, data, optimizer, running_status=None):
         diffusion = self.diffusion
+        num_params = sum(p.numel() for p in self.diffusion.parameters())
+
+        # Print the number of parameters
+        print(f"Total number of diffusion parameters: {num_params}")
+
         decoder = self.decoder_ema if self.freeze_decoder and self.decoder_use_ema else self.decoder
 
         num_scenes = len(data['scene_id'])
