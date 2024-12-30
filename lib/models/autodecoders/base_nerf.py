@@ -478,7 +478,7 @@ class BaseNeRF(nn.Module):
 
                 for code_single_ in code_:
                     grad_norm = code_single_.grad.norm().item()
-                    print(f"Gradient norm for code_single_: {grad_norm}")
+                    print(f"Gradient norm for code_single_ after step: {grad_norm}")
 
                 if isinstance(code_optimizer, list):
                     for code_optimizer_single in code_optimizer:
