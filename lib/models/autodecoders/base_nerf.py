@@ -462,6 +462,7 @@ class BaseNeRF(nn.Module):
                             # Print the gradient norm for each element in the list
                             grad_norm = code_single_.grad.norm().item()
                             print(f"Gradient norm for code_single_: {grad_norm}")
+                        print()
                     else:
                         code_.grad.copy_(prior_grad)
                         # Print the gradient norm for the single code_
@@ -479,6 +480,8 @@ class BaseNeRF(nn.Module):
                 for code_single_ in code_:
                     grad_norm = code_single_.grad.norm().item()
                     print(f"Gradient norm for code_single_ after step: {grad_norm}")
+                print()
+                print()
 
                 if isinstance(code_optimizer, list):
                     for code_optimizer_single in code_optimizer:
