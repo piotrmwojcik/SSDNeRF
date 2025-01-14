@@ -439,7 +439,8 @@ class BaseNeRF(nn.Module):
                 pbar = mmcv.ProgressBar(n_inverse_steps)
 
             # Compute the Frobenius norm of the concatenated tensor
-            grad_norm = prior_grad.norm().item()
+            flat_prior = torch.cat([pg.view(-1) for pg in prior_grad])
+            grad_norm = flat_prior.norm().item()
             print('Prior grad norm: ', grad_norm)
 
             for inverse_step_id in range(n_inverse_steps):
@@ -462,8 +463,6 @@ class BaseNeRF(nn.Module):
                 if prior_grad is not None:
                     if isinstance(code_, list):
 
-
-
                         for code_single_, prior_grad_single in zip(code_, prior_grad):
                             code_single_.grad.copy_(prior_grad_single)
                             # Print the gradient norm for each element in the list
@@ -485,7 +484,6 @@ class BaseNeRF(nn.Module):
 
                 # Compute the Frobenius norm of the concatenated tensor
                 grad_norm = flat_grad.norm().item()
-
                 print(f"Combined Gradient Norm after step: {grad_norm}")
                 print()
 
