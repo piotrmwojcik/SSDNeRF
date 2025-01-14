@@ -442,7 +442,6 @@ class BaseNeRF(nn.Module):
             flat_prior = torch.cat([pg.view(-1) for pg in prior_grad])
             grad_norm = flat_prior.norm().item()
             print('Prior grad norm: ', grad_norm)
-
             for inverse_step_id in range(n_inverse_steps):
                 code = self.code_activation(
                     torch.stack(code_, dim=0) if isinstance(code_, list)
@@ -485,8 +484,6 @@ class BaseNeRF(nn.Module):
                 # Compute the Frobenius norm of the concatenated tensor
                 grad_norm = flat_grad.norm().item()
                 print(f"Combined Gradient Norm after step: {grad_norm}")
-                print()
-
                 if isinstance(code_optimizer, list):
                     for code_optimizer_single in code_optimizer:
                         code_optimizer_single.step()
@@ -502,6 +499,7 @@ class BaseNeRF(nn.Module):
 
                 if show_pbar:
                     pbar.update()
+            print()
 
         decoder.train(decoder_training_prev)
 
